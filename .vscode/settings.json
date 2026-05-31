@@ -1,0 +1,12 @@
+{
+  "editor.codeActionsOnSave": {
+    "source.fixAll": "explicit",
+    "source.organizeImports": "explicit",
+    "source.sortMembers": "explicit"
+  },
+  "avdManager.sdkPath": "C:\\Users\\HP\\AppData\\Local\\Android\\Sdk",
+  "avdmanager.avdHome": "C:\\Users\\HP\\.android\\avd",
+  "avdmanager.emulatorOpt": "-netdelay none -netspeed full -gpu host",
+  "avdmanager.sdkPath": "C:\\Users\\HP\\AppData\\Local\\Android\\Sdk",
+  "avdmanager.executable": "c:\\Users\\HP\\AppData\\Local\\Android\\Sdk\\emulator\\emulator-check.exe"
+}
