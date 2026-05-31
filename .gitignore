@@ -1,3 +1,7 @@
+# Secrets — ne jamais pusher
+.env
+lib/apiKeys.ts
+
 # Node / React
 node_modules/
 build/
