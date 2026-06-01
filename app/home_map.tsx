@@ -1,14 +1,22 @@
 ﻿import { Ionicons } from "@expo/vector-icons";
-import React, { useEffect, useMemo, useState } from "react";
-import { Dimensions, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
+import {
+    Dimensions,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View,
+} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { SceneMap, TabView } from "react-native-tab-view";
+import { TabView } from "react-native-tab-view";
 
-import Accueil from "./tab/style";
-import Hairstyle from "./tab/profil";
-import Inpaint from "./tab/map";
-import FaceSwap from "./tab/map_livreur";
+import { TabFocusProvider } from "./context/TabFocusContext";
+import { NeutralBlurView } from "../components/NeutralBlurView";
+import Hairstyle from "./tab/cheveux";
+import FaceSwap from "./tab/faceswap";
+import Inpaint from "./tab/inpaint";
 import Param from "./tab/param";
+import Accueil from "./tab/style";
 
 const { width } = Dimensions.get("window");
 
@@ -19,38 +27,58 @@ const C = {
   activeBg: "rgba(200,149,106,0.14)",
 };
 
-type TabRoute = { key: string; title: string; icon: keyof typeof Ionicons.glyphMap };
+type TabRoute = {
+  key: string;
+  title: string;
+  icon: keyof typeof Ionicons.glyphMap;
+};
 
 export default function HomeMap() {
   const [index, setIndex] = useState(0);
 
-  const routes = useMemo<TabRoute[]>(() => [
-    { key: "inpaint",  title: "Inpaint",   icon: "color-wand-outline" },
-    { key: "home",     title: "Style",     icon: "shirt-outline" },
-    { key: "hair",     title: "Cheveux",   icon: "cut-outline" },
-    { key: "faceswap", title: "FaceSwap",  icon: "person-circle-outline" },
-    { key: "settings", title: "RÃ©glages",  icon: "settings-outline" },
-  ], []);
+  const routes = useMemo<TabRoute[]>(
+    () => [
+      { key: "inpaint", title: "Inpaint", icon: "color-wand-outline" },
+      { key: "home", title: "Style", icon: "shirt-outline" },
+      { key: "hair", title: "Cheveux", icon: "cut-outline" },
+      { key: "faceswap", title: "FaceSwap", icon: "person-circle-outline" },
+      { key: "settings", title: "RÃ©glages", icon: "settings-outline" },
+    ],
+    [],
+  );
 
-  const renderScene = useMemo(() => SceneMap({
-    inpaint:  Inpaint,
-    home:     Accueil,
-    hair:     Hairstyle,
+  const sceneMap: Record<string, React.ComponentType<any>> = useMemo(() => ({
+    inpaint: Inpaint,
+    home: Accueil,
+    hair: Hairstyle,
     faceswap: FaceSwap,
     settings: Param,
   }), []);
+
+  const renderScene = useCallback(({ route }: { route: TabRoute }) => {
+    const Scene = sceneMap[route.key];
+    if (!Scene) return null;
+    return (
+      <TabFocusProvider value={routes[index].key === route.key}>
+        <View style={{ flex: 1, backgroundColor: "#000" }}>
+          <Scene />
+        </View>
+      </TabFocusProvider>
+    );
+  }, [sceneMap, routes, index]);
 
   useEffect(() => {
     if (index >= routes.length) setIndex(0);
   }, [index, routes.length]);
 
   return (
-    <View style={{ flex: 1, backgroundColor: C.bg }}>
+    <View style={{ flex: 1 }}>
       <TabView
         navigationState={{ index, routes }}
         renderScene={renderScene}
         onIndexChange={setIndex}
         initialLayout={{ width }}
+        style={{ backgroundColor: "transparent" }}
         swipeEnabled
         renderTabBar={() => null}
         lazy
@@ -67,8 +95,14 @@ export default function HomeMap() {
                 style={styles.navItem}
                 activeOpacity={0.75}
               >
-                <View style={[styles.iconWrap, active && styles.iconWrapActive]}>
-                  <Ionicons name={route.icon} size={22} color={active ? C.active : C.inactive} />
+                <View
+                  style={[styles.iconWrap, active && styles.iconWrapActive]}
+                >
+                  <Ionicons
+                    name={route.icon}
+                    size={22}
+                    color={active ? C.active : C.inactive}
+                  />
                 </View>
                 <Text style={[styles.label, active && styles.labelActive]}>
                   {route.title}
@@ -88,10 +122,12 @@ const styles = StyleSheet.create({
   },
   navBar: {
     flexDirection: "row",
-    borderTopWidth: 1,
-    borderTopColor: "rgba(255,255,255,0.07)",
+    borderWidth: 1,
+    borderColor: "rgba(204, 180, 160, 0.22)",
+    backgroundColor: "rgba(255, 255, 255, 0.42)",
+    overflow: "hidden",
     paddingTop: 8,
-    paddingBottom: 6,
+    paddingBottom: 8,
     paddingHorizontal: 8,
   },
   navItem: {
@@ -100,11 +136,13 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   iconWrap: {
-    width: 42,
-    height: 36,
-    borderRadius: 18,
+    width: 50,
+    height: 42,
+    borderRadius: 24,
+    overflow: "hidden",
     alignItems: "center",
     justifyContent: "center",
+    backgroundColor: "rgba(255,255,255,0.08)",
   },
   iconWrapActive: {
     backgroundColor: C.activeBg,
@@ -120,4 +158,3 @@ const styles = StyleSheet.create({
     fontWeight: "700",
   },
 });
-

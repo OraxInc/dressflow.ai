@@ -23,4 +23,12 @@ Thumbs.db
 expo-env.d.ts
 # @end expo-cli
 
-.expo
+.expo/
+
+.env/
+
+Ayimolou-backend/
+
+lib/apiKeys.ts/
+
+lib/

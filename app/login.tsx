@@ -13,7 +13,6 @@ import {
   Alert,
 } from "react-native";
 import { Link, router } from "expo-router";
-import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
 
 const { width } = Dimensions.get("window");
@@ -41,7 +40,7 @@ export default function LoginScreen() {
   };
 
   return (
-    <LinearGradient colors={["#04091A", "#0B1728", "#060E1E"]} style={styles.container}>
+    <View style={styles.container}>
       <KeyboardAvoidingView
         style={styles.inner}
         behavior={Platform.OS === "ios" ? "padding" : "height"}
@@ -134,12 +133,12 @@ export default function LoginScreen() {
           </Pressable>
         </Link>
       </KeyboardAvoidingView>
-    </LinearGradient>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1 },
+  container: { flex: 1, backgroundColor: "#031227cb" },
   inner: { flex: 1, alignItems: "center", justifyContent: "center", paddingHorizontal: 24 },
 
   logoWrap: { alignItems: "center", marginBottom: 32 },
@@ -152,7 +151,7 @@ const styles = StyleSheet.create({
     overflow: "hidden",
     padding: 24,
     borderWidth: 1,
-    borderColor: C.border, backgroundColor: "rgba(255,255,255,0.09)",
+    borderColor: C.border, backgroundColor: "rgba(255, 255, 255, 0.12)",
     marginBottom: 20,
   },
   formTitle: { fontSize: 22, fontWeight: "800", color: C.cream, marginBottom: 4 },
@@ -162,12 +161,12 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     borderWidth: 1,
-    borderColor: C.border, backgroundColor: "rgba(255,255,255,0.09)",
+    borderColor: C.border, 
+    backgroundColor: "rgba(255, 255, 255, 0.09)",
     borderRadius: 14,
     paddingHorizontal: 14,
     paddingVertical: 12,
     marginBottom: 12,
-    backgroundColor: "rgba(255,255,255,0.04)",
   },
   inputIcon: { marginRight: 10 },
   input: { flex: 1, color: C.cream, fontSize: 15 },
@@ -206,4 +205,3 @@ const styles = StyleSheet.create({
 
   skipText: { color: C.khaki, fontSize: 13, opacity: 0.7 },
 });
-

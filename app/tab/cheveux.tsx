@@ -25,19 +25,17 @@ import {
 import { XAI_API_KEY } from "../../lib/apiKeys";
 
 const C = {
-  bg: "#511f2e",
-  coffee: "#f4913f",
+  coffee: "#C8956A",
   cream: "#F0EBE3",
-  soft: "#c4c7d0",
-  border: "rgba(255,255,255,0.11)",
+  soft: "#b8e6d6",
+  border: "rgba(255,255,255,0.13)",
 };
 
-export default function AccueilScreen() {
+export default function HairstyleScreen() {
   const insets = useSafeAreaInsets();
   const blurTargetRef = useRef<View | null>(null);
   const [imageUri, setImageUri] = useState<string | null>(null);
-  const [imageBase64, setImageBase64] = useState<string | null>(null);
-  const [attachUri, setAttachUri] = useState<string | null>(null);
+  const [refUri, setRefUri] = useState<string | null>(null);
   const [prompt, setPrompt] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -52,7 +50,7 @@ export default function AccueilScreen() {
     }).start();
   };
 
-  const pickImage = async () => {
+  const pickImage = async (setter: (uri: string) => void) => {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (status !== "granted") {
       Alert.alert("Permission requise", "Active l'accès à la galerie dans les réglages.");
@@ -61,68 +59,55 @@ export default function AccueilScreen() {
     const res = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ["images"],
       quality: 0.85,
-      base64: true,
     });
     if (!res.canceled && res.assets[0]) {
-      setImageUri(res.assets[0].uri);
-      setImageBase64(res.assets[0].base64 ?? null);
-      setPrompt("");
-      inputAnim.setValue(0);
-      showInput();
+      setter(res.assets[0].uri);
+      if (setter === setImageUri) {
+        setPrompt("");
+        inputAnim.setValue(0);
+        showInput();
+      }
     }
   };
 
-  const generateStyle = async () => {
-    if (!prompt.trim() || !imageBase64) return;
+  const analyzeHairstyle = async () => {
+    if (!prompt.trim()) return;
     setLoading(true);
     try {
-      const messages: any[] = [
-        {
-          role: "system",
-          content:
-            "Tu es dressflow.ai, un styliste IA de luxe ultra-précis. Génères une liste numérotée de 5 modifications vestimentaires concrètes, photo-réalistes, avec couleurs exactes, matières, coupes et marques suggérées. Réponds uniquement en français.",
-        },
-        {
-          role: "user",
-          content: [
-            {
-              type: "image_url",
-              image_url: { url: `data:image/jpeg;base64,${imageBase64}`, detail: "low" },
-            },
-            {
-              type: "text",
-              text: `En analysant cette photo, propose 5 modifications vestimentaires précises selon : "${prompt}".`,
-            },
-          ],
-        },
-      ];
+      const refInfo = refUri ? " J'ai aussi fourni une image de référence." : "";
       const response = await fetch("https://api.x.ai/v1/chat/completions", {
         method: "POST",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${XAI_API_KEY}` },
-        body: JSON.stringify({ model: "grok-3", messages, max_tokens: 700 }),
+        body: JSON.stringify({
+          model: "grok-3",
+          messages: [
+            {
+              role: "system",
+              content:
+                "Tu es un expert en coiffure et stylisme capillaire de luxe. Tes recommandations sont précises, photo-réalistes. Tu mentionnes les techniques, les produits professionnels et l'entretien. Réponds en français avec 5 recommandations numérotées.",
+            },
+            {
+              role: "user",
+              content: `Je veux cette coiffure : "${prompt}".${refInfo} Donne-moi 5 recommandations précises avec : technique de coiffage, produits recommandés, durée de tenue et entretien quotidien.`,
+            },
+          ],
+          max_tokens: 750,
+        }),
       });
       const data = await response.json();
       if (data.error) throw new Error(data.error.message);
       const text: string = data.choices?.[0]?.message?.content ?? "";
-      Alert.alert("Suggestions de style", text);
+      Alert.alert("Recommandations coiffure", text);
     } catch (err: any) {
-      Alert.alert("Erreur IA", err.message ?? "Impossible de contacter l'IA.");
+      Alert.alert("Erreur IA", err.message ?? "Connexion impossible.");
     } finally {
       setLoading(false);
     }
   };
 
-  const pickAttach = async () => {
-    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (status !== "granted") return;
-    const res = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ["images"], quality: 0.85 });
-    if (!res.canceled && res.assets[0]) setAttachUri(res.assets[0].uri);
-  };
-
   const reset = () => {
     setImageUri(null);
-    setImageBase64(null);
-    setAttachUri(null);
+    setRefUri(null);
     setPrompt("");
     inputAnim.setValue(0);
   };
@@ -140,7 +125,11 @@ export default function AccueilScreen() {
       {!imageUri ? (
         <View style={styles.centerWrap}>
           <Text style={styles.emptyHint}>Sélectionne une photo pour commencer</Text>
-          <TouchableOpacity onPress={pickImage} activeOpacity={0.82} style={styles.addButton}>
+          <TouchableOpacity
+            onPress={() => pickImage(setImageUri)}
+            activeOpacity={0.82}
+            style={styles.addButton}
+          >
             <NeutralBlurView
               pointerEvents="none"
               style={styles.addButtonBlur}
@@ -155,17 +144,19 @@ export default function AccueilScreen() {
           <View style={styles.imageWrap}>
             <Animated.Image source={{ uri: imageUri }} style={[styles.image, { opacity: imageOpacity }]} resizeMode="cover" />
 
-            {attachUri && (
-              <View style={[styles.attachWrap, { bottom: insets.bottom + 110 }]}>
-                <Image source={{ uri: attachUri }} style={styles.attachImg} resizeMode="cover" />
-                <TouchableOpacity style={styles.attachClose} onPress={() => setAttachUri(null)}>
+            {/* Reference image — bottom-left overlay */}
+            {refUri && (
+              <View style={styles.refWrap}>
+                <Image source={{ uri: refUri }} style={styles.refImage} resizeMode="cover" />
+                <TouchableOpacity style={styles.refClose} onPress={() => setRefUri(null)}>
                   <Ionicons name="close-circle" size={18} color="#E05555" />
                 </TouchableOpacity>
               </View>
             )}
 
+            {/* Changer button */}
             <TouchableOpacity
-              onPress={pickImage}
+              onPress={() => pickImage(setImageUri)}
               style={[styles.changeBtn, { top: insets.top + 14 }]}
             >
               <View style={styles.changeBtnBlur}>
@@ -174,11 +165,12 @@ export default function AccueilScreen() {
               </View>
             </TouchableOpacity>
 
+            {/* Close button */}
             <TouchableOpacity
               onPress={reset}
-              style={[styles.resetBtn, { top: insets.top + 14 }]}
+              style={[styles.closeBtn, { top: insets.top + 14 }]}
             >
-              <View style={styles.resetBtnBlur}>
+              <View style={styles.closeBtnBlur}>
                 <Ionicons name="close" size={16} color="#E05555" />
               </View>
             </TouchableOpacity>
@@ -196,28 +188,28 @@ export default function AccueilScreen() {
             >
               <View style={styles.toolRow}>
                 <TouchableOpacity
-                  onPress={pickAttach}
-                  style={[styles.attachBtn, attachUri && styles.attachBtnActive]}
+                  onPress={() => pickImage(setRefUri)}
+                  style={[styles.attachBtn, refUri && styles.attachBtnActive]}
                   activeOpacity={0.8}
                 >
-                  <Ionicons name="attach" size={20} color={attachUri ? "#FFE700" : C.cream} />
-                  <Text style={[styles.attachLabel, attachUri && { color: "#FFE700" }]}>Attacher</Text>
+                  <Ionicons name="attach" size={20} color={refUri ? "#FFE700" : C.cream} />
+                  <Text style={[styles.attachLabel, refUri && { color: "#FFE700" }]}>Attacher</Text>
                 </TouchableOpacity>
               </View>
 
               <NeutralBlurView style={styles.inputBlur} intensity={10}>
                 <TextInput
                   style={styles.input}
-                  placeholder="Décris le style souhaité..."
+                  placeholder="Décris la coiffure souhaitée..."
                   placeholderTextColor="rgba(255,255,255,0.35)"
                   value={prompt}
                   onChangeText={setPrompt}
                   returnKeyType="send"
-                  onSubmitEditing={generateStyle}
+                  onSubmitEditing={analyzeHairstyle}
                   editable={!loading}
                 />
                 <TouchableOpacity
-                  onPress={generateStyle}
+                  onPress={analyzeHairstyle}
                   disabled={loading || !prompt.trim()}
                   style={[styles.genBtn, (!prompt.trim() || loading) && styles.genBtnDisabled]}
                   activeOpacity={0.8}
@@ -238,7 +230,7 @@ export default function AccueilScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#511f2e" },
+  container: { ...StyleSheet.absoluteFillObject, backgroundColor: "#1a0535" },
   centerWrap: { flex: 1, alignItems: "center", justifyContent: "center" },
   emptyHint: { fontSize: 15, color: C.soft, marginBottom: 36, textAlign: "center" },
   addButton: {
@@ -256,9 +248,40 @@ const styles = StyleSheet.create({
   imageWrap: {
     flex: 1,
     width: "100%",
-    overflow: "hidden",
+    backgroundColor: "#000",
   },
-  image: { width: "100%", height: "100%" },
+  image: { ...StyleSheet.absoluteFillObject },
+  refWrap: {
+    position: "absolute",
+    bottom: 80,
+    left: 16,
+    width: 90,
+    height: 90,
+    borderRadius: 14,
+    overflow: "hidden",
+    borderWidth: 2,
+    borderColor: C.border,
+  },
+  refImage: { width: "100%", height: "100%" },
+  refClose: {
+    position: "absolute",
+    top: 4,
+    right: 4,
+  },
+  refAddBtn: {
+    position: "absolute",
+    left: 16,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    paddingHorizontal: 12,
+    paddingVertical: 7,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: C.border,
+    backgroundColor: "rgba(255,255,255,0.09)",
+  },
+  refAddText: { color: C.soft, fontSize: 12, fontWeight: "500" },
   changeBtn: {
     position: "absolute",
     right: 52,
@@ -276,13 +299,13 @@ const styles = StyleSheet.create({
     gap: 5,
   },
   changeBtnText: { color: C.cream, fontSize: 12, fontWeight: "500" },
-  resetBtn: {
+  closeBtn: {
     position: "absolute",
     right: 12,
     borderRadius: 20,
     overflow: "hidden",
   },
-  resetBtnBlur: {
+  closeBtnBlur: {
     padding: 8,
     borderWidth: 1,
     borderColor: C.border,
@@ -290,34 +313,6 @@ const styles = StyleSheet.create({
   },
   inputLayer: { position: "absolute", bottom: 0, left: 0, right: 0 },
   inputBar: { marginHorizontal: 16, gap: 8 },
-  inputBlur: {
-    flexDirection: "row",
-    alignItems: "center",
-    borderRadius: 30,
-    overflow: "hidden",
-    borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.15)",
-    backgroundColor: "rgba(12,18,30,0.25)",
-    paddingLeft: 18,
-    paddingRight: 6,
-    paddingVertical: 8,
-  },
-  input: {
-    flex: 1,
-    color: C.cream,
-    fontSize: 15,
-    paddingVertical: 8,
-    minHeight: 42,
-  },
-  genBtn: {
-    backgroundColor: C.coffee,
-    borderRadius: 20,
-    paddingHorizontal: 18,
-    paddingVertical: 10,
-    marginLeft: 8,
-  },
-  genBtnDisabled: { opacity: 0.4 },
-  genBtnText: { color: C.cream, fontWeight: "800", fontSize: 14 },
   toolRow: { flexDirection: "row" },
   attachBtn: {
     flexDirection: "row", alignItems: "center", gap: 6,
@@ -327,11 +322,26 @@ const styles = StyleSheet.create({
   },
   attachBtnActive: { borderColor: "rgba(255,231,0,0.55)", backgroundColor: "rgba(255,231,0,0.1)" },
   attachLabel: { color: C.cream, fontSize: 12, fontWeight: "600" },
-  attachWrap: {
-    position: "absolute", left: 16,
-    width: 86, height: 86, borderRadius: 14, overflow: "hidden",
-    borderWidth: 2, borderColor: "rgba(255,231,0,0.6)",
+  inputBlur: {
+    flexDirection: "row",
+    alignItems: "center",
+    borderRadius: 30,
+    overflow: "hidden",
+    borderWidth: 1,
+    borderColor: C.border,
+    backgroundColor: "rgba(12,18,30,0.25)",
+    paddingLeft: 18,
+    paddingRight: 6,
+    paddingVertical: 8,
   },
-  attachImg: { width: "100%", height: "100%" },
-  attachClose: { position: "absolute", top: 3, right: 3 },
+  input: { flex: 1, color: C.cream, fontSize: 15, paddingVertical: 8, minHeight: 42 },
+  genBtn: {
+    backgroundColor: C.coffee,
+    borderRadius: 20,
+    paddingHorizontal: 18,
+    paddingVertical: 10,
+    marginLeft: 8,
+  },
+  genBtnDisabled: { opacity: 0.4 },
+  genBtnText: { color: C.cream, fontWeight: "800", fontSize: 14 },
 });

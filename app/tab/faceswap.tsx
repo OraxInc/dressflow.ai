@@ -66,7 +66,7 @@ export default function FaceSwapScreen() {
   if (!isPremium) {
     return (
       <LinearGradient
-        colors={["#0B1728", "#100E28", "#0B1728"]}
+        colors={["#0c1c34eb", "#061428eb", "#0b1c35eb"]}
         style={styles.flex}
       >
         <View style={styles.paywallContainer}>
@@ -115,7 +115,7 @@ export default function FaceSwapScreen() {
   /* Écran Face Swap (Premium) */
   return (
     <LinearGradient
-      colors={["#0B1728", "#100E28", "#0B1728"]}
+      colors={["#0B1728", "#0d065f3d", "#0B1728"]}
       style={styles.flex}
     >
       <ScrollView
@@ -212,8 +212,7 @@ export default function FaceSwapScreen() {
             </View>
           ) : (
             <View
-              style={[styles.slotEmpty, { borderColor: "rgba(45,106,79,0.3)" }]}
-            >
+              style={[styles.slotEmpty, { borderColor: "rgba(45,106,79,0.5)" },]}>
               <Ionicons
                 name="images-outline"
                 size={40}

@@ -62,7 +62,7 @@ export default function ParamScreen() {
 
   return (
     <LinearGradient
-      colors={["#0B1728", "#0E1F38", "#0B1728"]}
+      colors={["#0c1c34eb", "#061428eb", "#0b1c35eb"]}
       style={styles.flex}
     >
       <ScrollView
@@ -95,10 +95,11 @@ export default function ParamScreen() {
                 </View>
               </View>
               <TouchableOpacity
-                style={styles.manageBtn}
                 onPress={() => setIsPremium(false)}
               >
-                <Text style={styles.manageBtnText}>Gérer l'abonnement</Text>
+                <View style={styles.manageBtn}>
+                  <Text style={styles.manageBtnText}>Gérer l'abonnement</Text>
+                </View>
               </TouchableOpacity>
             </View>
           ) : (
@@ -397,7 +398,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     borderWidth: 2,
     borderColor: C.coffee,
-    backgroundColor: "rgba(255,255,255,0.09)",
+    backgroundColor: "rgba(255, 255, 255, 0.09)",
     marginBottom: 14,
   },
   userName: {
@@ -524,7 +525,7 @@ const styles = StyleSheet.create({
   },
   modalOverlay: {
     flex: 1,
-    backgroundColor: "rgba(0,0,0,0.6)",
+    backgroundColor: "rgba(0, 0, 0, 0.96)",
     alignItems: "center",
     justifyContent: "center",
   },

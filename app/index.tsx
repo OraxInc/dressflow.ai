@@ -9,7 +9,6 @@ import {
   Dimensions,
 } from "react-native";
 import { Link } from "expo-router";
-import { LinearGradient } from "expo-linear-gradient";
 
 const { width } = Dimensions.get("window");
 
@@ -22,10 +21,7 @@ const C = {
 
 export default function Index() {
   return (
-    <LinearGradient
-      colors={["#04091A", "#0B1728", "#060E1E"]}
-      style={styles.container}
-    >
+    <View style={styles.container}>
       <View style={styles.logoWrap}>
         <Image
           source={require("../assets/images/dressup_ai.png")}
@@ -43,7 +39,7 @@ export default function Index() {
           <Text style={styles.ctaBtnText}>Go !</Text>
         </Pressable>
       </Link>
-    </LinearGradient>
+    </View>
   );
 }
 
@@ -53,6 +49,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     paddingHorizontal: 28,
+    backgroundColor: "#0c1728de",
   },
   logoWrap: { marginBottom: 50 },
   logo: { width: width * 0.6, height: 180 },

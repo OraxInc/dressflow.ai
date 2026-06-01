@@ -28,7 +28,7 @@
       [
         "expo-splash-screen",
         {
-          "image": "./assets/images/images/dressup_ai.png",
+          "image": "./assets/images/dressup_ai.png",
           "imageWidth": 200,
           "resizeMode": "contain",
           "backgroundColor": "black"
