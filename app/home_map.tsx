@@ -42,7 +42,7 @@ export default function HomeMap() {
       { key: "home", title: "Style", icon: "shirt-outline" },
       { key: "hair", title: "Cheveux", icon: "cut-outline" },
       { key: "faceswap", title: "FaceSwap", icon: "person-circle-outline" },
-      { key: "settings", title: "RÃ©glages", icon: "settings-outline" },
+      { key: "settings", title: "Réglages", icon: "settings-outline" },
     ],
     [],
   );
@@ -123,8 +123,8 @@ const styles = StyleSheet.create({
   navBar: {
     flexDirection: "row",
     borderWidth: 1,
-    borderColor: "rgba(204, 180, 160, 0.22)",
-    backgroundColor: "rgba(255, 255, 255, 0.42)",
+    borderColor: "rgb(255, 255, 255)",
+    backgroundColor: "rgb(255, 255, 255)",
     overflow: "hidden",
     paddingTop: 8,
     paddingBottom: 8,

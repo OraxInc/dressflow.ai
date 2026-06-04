@@ -2,25 +2,26 @@ import { Ionicons } from "@expo/vector-icons";
 import * as ImagePicker from "expo-image-picker";
 import React, { useRef, useState } from "react";
 import {
-    ActivityIndicator,
-    Alert,
-    Animated,
-    Image,
-    KeyboardAvoidingView,
-    Platform,
-    StatusBar,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View,
+  ActivityIndicator,
+  Alert,
+  Animated,
+  Image,
+  KeyboardAvoidingView,
+  Platform,
+  StatusBar,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useTabFocused } from "../context/TabFocusContext";
 import { useImageFade } from "../../hooks/useImageFade";
+import { ZoomableView } from "../../components/ZoomableView";
 import {
-    getAndroidBlurProps,
-    NeutralBlurView,
+  getAndroidBlurProps,
+  NeutralBlurView,
 } from "../../components/NeutralBlurView";
 import { XAI_API_KEY } from "../../lib/apiKeys";
 
@@ -53,7 +54,10 @@ export default function HairstyleScreen() {
   const pickImage = async (setter: (uri: string) => void) => {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (status !== "granted") {
-      Alert.alert("Permission requise", "Active l'accès à la galerie dans les réglages.");
+      Alert.alert(
+        "Permission requise",
+        "Active l'accès à la galerie dans les réglages.",
+      );
       return;
     }
     const res = await ImagePicker.launchImageLibraryAsync({
@@ -74,10 +78,15 @@ export default function HairstyleScreen() {
     if (!prompt.trim()) return;
     setLoading(true);
     try {
-      const refInfo = refUri ? " J'ai aussi fourni une image de référence." : "";
+      const refInfo = refUri
+        ? " J'ai aussi fourni une image de référence."
+        : "";
       const response = await fetch("https://api.x.ai/v1/chat/completions", {
         method: "POST",
-        headers: { "Content-Type": "application/json", Authorization: `Bearer ${XAI_API_KEY}` },
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${XAI_API_KEY}`,
+        },
         body: JSON.stringify({
           model: "grok-3",
           messages: [
@@ -112,10 +121,16 @@ export default function HairstyleScreen() {
     inputAnim.setValue(0);
   };
 
-  const isFocused    = useTabFocused();
+  const isFocused = useTabFocused();
   const imageOpacity = useImageFade(imageUri, isFocused);
-  const translateY = inputAnim.interpolate({ inputRange: [0, 1], outputRange: [100, 0] });
-  const opacity = inputAnim.interpolate({ inputRange: [0, 1], outputRange: [0, 1] });
+  const translateY = inputAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: [100, 0],
+  });
+  const opacity = inputAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: [0, 1],
+  });
   const backgroundBlurProps = getAndroidBlurProps(blurTargetRef) as any;
 
   return (
@@ -124,7 +139,9 @@ export default function HairstyleScreen() {
 
       {!imageUri ? (
         <View style={styles.centerWrap}>
-          <Text style={styles.emptyHint}>Sélectionne une photo pour commencer</Text>
+          <Text style={styles.emptyHint}>
+            Sélectionne une photo pour commencer
+          </Text>
           <TouchableOpacity
             onPress={() => pickImage(setImageUri)}
             activeOpacity={0.82}
@@ -142,13 +159,26 @@ export default function HairstyleScreen() {
       ) : (
         <>
           <View style={styles.imageWrap}>
-            <Animated.Image source={{ uri: imageUri }} style={[styles.image, { opacity: imageOpacity }]} resizeMode="cover" />
+            <ZoomableView style={StyleSheet.absoluteFillObject}>
+              <Animated.Image
+                source={{ uri: imageUri }}
+                style={[styles.image, { opacity: imageOpacity }]}
+                resizeMode="cover"
+              />
+            </ZoomableView>
 
             {/* Reference image — bottom-left overlay */}
             {refUri && (
               <View style={styles.refWrap}>
-                <Image source={{ uri: refUri }} style={styles.refImage} resizeMode="cover" />
-                <TouchableOpacity style={styles.refClose} onPress={() => setRefUri(null)}>
+                <Image
+                  source={{ uri: refUri }}
+                  style={styles.refImage}
+                  resizeMode="cover"
+                />
+                <TouchableOpacity
+                  style={styles.refClose}
+                  onPress={() => setRefUri(null)}
+                >
                   <Ionicons name="close-circle" size={18} color="#E05555" />
                 </TouchableOpacity>
               </View>
@@ -183,7 +213,11 @@ export default function HairstyleScreen() {
             <Animated.View
               style={[
                 styles.inputBar,
-                { marginBottom: insets.bottom + 16, opacity, transform: [{ translateY }] },
+                {
+                  marginBottom: insets.bottom + 16,
+                  opacity,
+                  transform: [{ translateY }],
+                },
               ]}
             >
               <View style={styles.toolRow}>
@@ -192,8 +226,16 @@ export default function HairstyleScreen() {
                   style={[styles.attachBtn, refUri && styles.attachBtnActive]}
                   activeOpacity={0.8}
                 >
-                  <Ionicons name="attach" size={20} color={refUri ? "#FFE700" : C.cream} />
-                  <Text style={[styles.attachLabel, refUri && { color: "#FFE700" }]}>Attacher</Text>
+                  <Ionicons
+                    name="attach"
+                    size={20}
+                    color={refUri ? "#FFE700" : C.cream}
+                  />
+                  <Text
+                    style={[styles.attachLabel, refUri && { color: "#FFE700" }]}
+                  >
+                    Attacher
+                  </Text>
                 </TouchableOpacity>
               </View>
 
@@ -211,7 +253,10 @@ export default function HairstyleScreen() {
                 <TouchableOpacity
                   onPress={analyzeHairstyle}
                   disabled={loading || !prompt.trim()}
-                  style={[styles.genBtn, (!prompt.trim() || loading) && styles.genBtnDisabled]}
+                  style={[
+                    styles.genBtn,
+                    (!prompt.trim() || loading) && styles.genBtnDisabled,
+                  ]}
                   activeOpacity={0.8}
                 >
                   {loading ? (
@@ -232,7 +277,12 @@ export default function HairstyleScreen() {
 const styles = StyleSheet.create({
   container: { ...StyleSheet.absoluteFillObject, backgroundColor: "#1a0535" },
   centerWrap: { flex: 1, alignItems: "center", justifyContent: "center" },
-  emptyHint: { fontSize: 15, color: C.soft, marginBottom: 36, textAlign: "center" },
+  emptyHint: {
+    fontSize: 15,
+    color: C.soft,
+    marginBottom: 36,
+    textAlign: "center",
+  },
   addButton: {
     width: 150,
     height: 150,
@@ -240,8 +290,8 @@ const styles = StyleSheet.create({
     overflow: "hidden",
     alignItems: "center",
     justifyContent: "center",
-    borderWidth: 1.5,
-    borderColor: C.border,
+    borderWidth: 2,
+    borderColor: "rgb(240, 227, 227)",
     backgroundColor: "rgba(255,255,255,0.09)",
   },
   addButtonBlur: { ...StyleSheet.absoluteFillObject },
@@ -249,6 +299,7 @@ const styles = StyleSheet.create({
     flex: 1,
     width: "100%",
     backgroundColor: "#000",
+    overflow: "hidden",
   },
   image: { ...StyleSheet.absoluteFillObject },
   refWrap: {
@@ -315,12 +366,20 @@ const styles = StyleSheet.create({
   inputBar: { marginHorizontal: 16, gap: 8 },
   toolRow: { flexDirection: "row" },
   attachBtn: {
-    flexDirection: "row", alignItems: "center", gap: 6,
-    paddingHorizontal: 14, paddingVertical: 8, borderRadius: 18,
-    borderWidth: 1, borderColor: C.border,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 18,
+    borderWidth: 1,
+    borderColor: C.border,
     backgroundColor: "rgba(255,255,255,0.07)",
   },
-  attachBtnActive: { borderColor: "rgba(255,231,0,0.55)", backgroundColor: "rgba(255,231,0,0.1)" },
+  attachBtnActive: {
+    borderColor: "rgba(255,231,0,0.55)",
+    backgroundColor: "rgba(255,231,0,0.1)",
+  },
   attachLabel: { color: C.cream, fontSize: 12, fontWeight: "600" },
   inputBlur: {
     flexDirection: "row",
@@ -334,7 +393,13 @@ const styles = StyleSheet.create({
     paddingRight: 6,
     paddingVertical: 8,
   },
-  input: { flex: 1, color: C.cream, fontSize: 15, paddingVertical: 8, minHeight: 42 },
+  input: {
+    flex: 1,
+    color: C.cream,
+    fontSize: 15,
+    paddingVertical: 8,
+    minHeight: 42,
+  },
   genBtn: {
     backgroundColor: C.coffee,
     borderRadius: 20,

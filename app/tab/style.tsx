@@ -2,25 +2,26 @@ import { Ionicons } from "@expo/vector-icons";
 import * as ImagePicker from "expo-image-picker";
 import React, { useRef, useState } from "react";
 import {
-    ActivityIndicator,
-    Alert,
-    Animated,
-    Image,
-    KeyboardAvoidingView,
-    Platform,
-    StatusBar,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View,
+  ActivityIndicator,
+  Alert,
+  Animated,
+  Image,
+  KeyboardAvoidingView,
+  Platform,
+  StatusBar,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useTabFocused } from "../context/TabFocusContext";
 import { useImageFade } from "../../hooks/useImageFade";
+import { ZoomableView } from "../../components/ZoomableView";
 import {
-    getAndroidBlurProps,
-    NeutralBlurView,
+  getAndroidBlurProps,
+  NeutralBlurView,
 } from "../../components/NeutralBlurView";
 import { XAI_API_KEY } from "../../lib/apiKeys";
 
@@ -55,7 +56,10 @@ export default function AccueilScreen() {
   const pickImage = async () => {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (status !== "granted") {
-      Alert.alert("Permission requise", "Active l'accès à la galerie dans les réglages.");
+      Alert.alert(
+        "Permission requise",
+        "Active l'accès à la galerie dans les réglages.",
+      );
       return;
     }
     const res = await ImagePicker.launchImageLibraryAsync({
@@ -87,7 +91,10 @@ export default function AccueilScreen() {
           content: [
             {
               type: "image_url",
-              image_url: { url: `data:image/jpeg;base64,${imageBase64}`, detail: "low" },
+              image_url: {
+                url: `data:image/jpeg;base64,${imageBase64}`,
+                detail: "low",
+              },
             },
             {
               type: "text",
@@ -98,7 +105,10 @@ export default function AccueilScreen() {
       ];
       const response = await fetch("https://api.x.ai/v1/chat/completions", {
         method: "POST",
-        headers: { "Content-Type": "application/json", Authorization: `Bearer ${XAI_API_KEY}` },
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${XAI_API_KEY}`,
+        },
         body: JSON.stringify({ model: "grok-3", messages, max_tokens: 700 }),
       });
       const data = await response.json();
@@ -115,7 +125,10 @@ export default function AccueilScreen() {
   const pickAttach = async () => {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (status !== "granted") return;
-    const res = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ["images"], quality: 0.85 });
+    const res = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ["images"],
+      quality: 0.85,
+    });
     if (!res.canceled && res.assets[0]) setAttachUri(res.assets[0].uri);
   };
 
@@ -127,10 +140,16 @@ export default function AccueilScreen() {
     inputAnim.setValue(0);
   };
 
-  const isFocused    = useTabFocused();
+  const isFocused = useTabFocused();
   const imageOpacity = useImageFade(imageUri, isFocused);
-  const translateY = inputAnim.interpolate({ inputRange: [0, 1], outputRange: [100, 0] });
-  const opacity = inputAnim.interpolate({ inputRange: [0, 1], outputRange: [0, 1] });
+  const translateY = inputAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: [100, 0],
+  });
+  const opacity = inputAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: [0, 1],
+  });
   const backgroundBlurProps = getAndroidBlurProps(blurTargetRef) as any;
 
   return (
@@ -139,8 +158,14 @@ export default function AccueilScreen() {
 
       {!imageUri ? (
         <View style={styles.centerWrap}>
-          <Text style={styles.emptyHint}>Sélectionne une photo pour commencer</Text>
-          <TouchableOpacity onPress={pickImage} activeOpacity={0.82} style={styles.addButton}>
+          <Text style={styles.emptyHint}>
+            Sélectionne une photo pour commencer
+          </Text>
+          <TouchableOpacity
+            onPress={pickImage}
+            activeOpacity={0.82}
+            style={styles.addButton}
+          >
             <NeutralBlurView
               pointerEvents="none"
               style={styles.addButtonBlur}
@@ -153,12 +178,27 @@ export default function AccueilScreen() {
       ) : (
         <>
           <View style={styles.imageWrap}>
-            <Animated.Image source={{ uri: imageUri }} style={[styles.image, { opacity: imageOpacity }]} resizeMode="cover" />
+            <ZoomableView style={StyleSheet.absoluteFillObject}>
+              <Animated.Image
+                source={{ uri: imageUri }}
+                style={[styles.image, { opacity: imageOpacity }]}
+                resizeMode="cover"
+              />
+            </ZoomableView>
 
             {attachUri && (
-              <View style={[styles.attachWrap, { bottom: insets.bottom + 110 }]}>
-                <Image source={{ uri: attachUri }} style={styles.attachImg} resizeMode="cover" />
-                <TouchableOpacity style={styles.attachClose} onPress={() => setAttachUri(null)}>
+              <View
+                style={[styles.attachWrap, { bottom: insets.bottom + 110 }]}
+              >
+                <Image
+                  source={{ uri: attachUri }}
+                  style={styles.attachImg}
+                  resizeMode="cover"
+                />
+                <TouchableOpacity
+                  style={styles.attachClose}
+                  onPress={() => setAttachUri(null)}
+                >
                   <Ionicons name="close-circle" size={18} color="#E05555" />
                 </TouchableOpacity>
               </View>
@@ -191,17 +231,35 @@ export default function AccueilScreen() {
             <Animated.View
               style={[
                 styles.inputBar,
-                { marginBottom: insets.bottom + 16, opacity, transform: [{ translateY }] },
+                {
+                  marginBottom: insets.bottom + 16,
+                  opacity,
+                  transform: [{ translateY }],
+                },
               ]}
             >
               <View style={styles.toolRow}>
                 <TouchableOpacity
                   onPress={pickAttach}
-                  style={[styles.attachBtn, attachUri && styles.attachBtnActive]}
+                  style={[
+                    styles.attachBtn,
+                    attachUri && styles.attachBtnActive,
+                  ]}
                   activeOpacity={0.8}
                 >
-                  <Ionicons name="attach" size={20} color={attachUri ? "#FFE700" : C.cream} />
-                  <Text style={[styles.attachLabel, attachUri && { color: "#FFE700" }]}>Attacher</Text>
+                  <Ionicons
+                    name="attach"
+                    size={20}
+                    color={attachUri ? "#FFE700" : C.cream}
+                  />
+                  <Text
+                    style={[
+                      styles.attachLabel,
+                      attachUri && { color: "#FFE700" },
+                    ]}
+                  >
+                    Attacher
+                  </Text>
                 </TouchableOpacity>
               </View>
 
@@ -219,7 +277,10 @@ export default function AccueilScreen() {
                 <TouchableOpacity
                   onPress={generateStyle}
                   disabled={loading || !prompt.trim()}
-                  style={[styles.genBtn, (!prompt.trim() || loading) && styles.genBtnDisabled]}
+                  style={[
+                    styles.genBtn,
+                    (!prompt.trim() || loading) && styles.genBtnDisabled,
+                  ]}
                   activeOpacity={0.8}
                 >
                   {loading ? (
@@ -238,9 +299,14 @@ export default function AccueilScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#511f2e" },
+  container: { flex: 1, backgroundColor: "#511f1f" },
   centerWrap: { flex: 1, alignItems: "center", justifyContent: "center" },
-  emptyHint: { fontSize: 15, color: C.soft, marginBottom: 36, textAlign: "center" },
+  emptyHint: {
+    fontSize: 15,
+    color: C.soft,
+    marginBottom: 36,
+    textAlign: "center",
+  },
   addButton: {
     width: 150,
     height: 150,
@@ -248,14 +314,15 @@ const styles = StyleSheet.create({
     overflow: "hidden",
     alignItems: "center",
     justifyContent: "center",
-    borderWidth: 1.5,
-    borderColor: C.border,
+    borderWidth: 2,
+    borderColor: "rgb(240, 227, 227)",
     backgroundColor: "rgba(255,255,255,0.09)",
   },
   addButtonBlur: { ...StyleSheet.absoluteFillObject },
   imageWrap: {
     flex: 1,
     width: "100%",
+    backgroundColor: "#000",
     overflow: "hidden",
   },
   image: { width: "100%", height: "100%" },
@@ -320,17 +387,30 @@ const styles = StyleSheet.create({
   genBtnText: { color: C.cream, fontWeight: "800", fontSize: 14 },
   toolRow: { flexDirection: "row" },
   attachBtn: {
-    flexDirection: "row", alignItems: "center", gap: 6,
-    paddingHorizontal: 14, paddingVertical: 8, borderRadius: 18,
-    borderWidth: 1, borderColor: C.border,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 18,
+    borderWidth: 1,
+    borderColor: C.border,
     backgroundColor: "rgba(255,255,255,0.07)",
   },
-  attachBtnActive: { borderColor: "rgba(255,231,0,0.55)", backgroundColor: "rgba(255,231,0,0.1)" },
+  attachBtnActive: {
+    borderColor: "rgba(255,231,0,0.55)",
+    backgroundColor: "rgba(255,231,0,0.1)",
+  },
   attachLabel: { color: C.cream, fontSize: 12, fontWeight: "600" },
   attachWrap: {
-    position: "absolute", left: 16,
-    width: 86, height: 86, borderRadius: 14, overflow: "hidden",
-    borderWidth: 2, borderColor: "rgba(255,231,0,0.6)",
+    position: "absolute",
+    left: 16,
+    width: 86,
+    height: 86,
+    borderRadius: 14,
+    overflow: "hidden",
+    borderWidth: 2,
+    borderColor: "rgba(255,231,0,0.6)",
   },
   attachImg: { width: "100%", height: "100%" },
   attachClose: { position: "absolute", top: 3, right: 3 },

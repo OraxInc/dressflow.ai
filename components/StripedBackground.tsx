@@ -2,7 +2,7 @@ import React from "react";
 import { StyleSheet, View } from "react-native";
 
 const STRIPES = [
-  "#0B1728",
+  "#122e56",
   "#2D6A4F",
   "#C8956A",
   "#8B8760",
