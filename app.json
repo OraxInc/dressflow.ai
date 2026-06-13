@@ -4,19 +4,17 @@
     "slug": "dressai",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/images/images/dressup_ai.png",
+    "icon": "./assets/images/dressup_ai.png",
     "scheme": "dressai",
-    "userInterfaceStyle": "automatic",
-    "newArchEnabled": true,
+    "userInterfaceStyle": "light",
     "ios": {
       "supportsTablet": true
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
-        "backgroundColor": "black"
-      },
-      "edgeToEdgeEnabled": true
+        "backgroundColor": "#f4913f"
+      }
     },
     "web": {
       "bundler": "metro",

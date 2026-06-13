@@ -34,7 +34,7 @@ export default function Index() {
 
       <Link href="/login" asChild>
         <Pressable
-          style={({ pressed }) => [styles.ctaBtn, pressed && { opacity: 0 }]}
+          style={styles.ctaBtn}
         >
           <Text style={styles.ctaBtnText}>Go !</Text>
         </Pressable>
@@ -49,23 +49,22 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     paddingHorizontal: 28,
-    backgroundColor: "#0c1728de",
+    backgroundColor: "#ffffff",
   },
   logoWrap: { marginBottom: 50 },
-  logo: { width: width * 0.6, height: 180 },
-  appName: { fontSize: 15, color: C.cream, letterSpacing: 2, marginBottom: 48 },
+  logo: { width: width * 0.6, height: 250 },
+  appName: { fontSize: 18, color: "#0c0548", letterSpacing: 2, marginBottom: 48 },
   ctaBtn: {
-    width: 140,
+    width: 90,
+    height: 46,
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: "black",
+    backgroundColor: "#2b4fc5",
     borderRadius: 32,
-    paddingVertical: 17,
   },
   ctaBtnText: {
-    color: C.cream,
+    color: "white",
     fontSize: 20,
-    fontWeight: "800",
     letterSpacing: 0.5,
   },
 });

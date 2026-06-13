@@ -299,7 +299,7 @@ export default function AccueilScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#511f1f" },
+  container: { flex: 1, backgroundColor: "#51311f" },
   centerWrap: { flex: 1, alignItems: "center", justifyContent: "center" },
   emptyHint: {
     fontSize: 15,

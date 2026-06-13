@@ -383,10 +383,7 @@ export default function InpaintScreen() {
       ) : (
         <>
           <View style={styles.imageWrap}>
-            <ZoomableView
-              style={StyleSheet.absoluteFillObject}
-              enabled={!tool}
-            >
+            <ZoomableView style={StyleSheet.absoluteFillObject} enabled={!tool}>
               <Animated.Image
                 source={{ uri: displayUri ?? imageUri }}
                 style={[styles.image, { opacity: imageOpacity }]}
@@ -670,7 +667,10 @@ export default function InpaintScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { ...StyleSheet.absoluteFillObject, backgroundColor: "rgba(36, 39, 122, 0.5)" },
+  container: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: "#091f3fe9",
+  },
 
   centerWrap: { flex: 1, alignItems: "center", justifyContent: "center" },
   emptyHint: {
@@ -692,7 +692,12 @@ const styles = StyleSheet.create({
   },
   addButtonBlur: { ...StyleSheet.absoluteFillObject },
 
-  imageWrap: { flex: 1, width: "100%", backgroundColor: "#000", overflow: "hidden" },
+  imageWrap: {
+    flex: 1,
+    width: "100%",
+    backgroundColor: "#000",
+    overflow: "hidden",
+  },
   image: { ...StyleSheet.absoluteFillObject },
 
   attachWrap: {
