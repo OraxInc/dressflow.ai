@@ -1,21 +1,21 @@
 ﻿import { Ionicons } from "@expo/vector-icons";
+import { LinearGradient } from "expo-linear-gradient";
 import React, { useContext, useState } from "react";
 import {
-  SafeAreaView,
-  ScrollView,
-  StyleSheet,
-  Switch,
-  Text,
-  TouchableOpacity,
-  View,
-  Modal,
-  Pressable,
+    Modal,
+    Pressable,
+    SafeAreaView,
+    ScrollView,
+    StyleSheet,
+    Switch,
+    Text,
+    TouchableOpacity,
+    View,
 } from "react-native";
-import { LinearGradient } from "expo-linear-gradient";
 import {
-  SettingsContext,
-  AppLanguage,
-  ExportQuality,
+    AppLanguage,
+    ExportQuality,
+    SettingsContext,
 } from "../context/SettingsContext";
 
 const C = {
@@ -50,6 +50,9 @@ export default function ParamScreen() {
     setNotificationsEnabled,
     exportQuality,
     setExportQuality,
+    themeMode,
+    setThemeMode,
+    theme,
   } = useContext(SettingsContext);
 
   const [langModal, setLangModal] = useState(false);
@@ -62,7 +65,7 @@ export default function ParamScreen() {
 
   return (
     <LinearGradient
-      colors={["#0c1c34eb", "#061428eb", "#0b1c35eb"]}
+      colors={[theme.gradientStart, theme.gradientEnd]}
       style={styles.flex}
     >
       <ScrollView
@@ -72,33 +75,39 @@ export default function ParamScreen() {
         <SafeAreaView>
           <View style={styles.profileSection}>
             <View style={styles.avatar}>
-              <Ionicons name="person" size={38} color={C.coffee} />
+              <Ionicons name="person" size={38} color={theme.accent} />
             </View>
-            <Text style={styles.userName}>{userName}</Text>
-            <Text style={styles.userEmail}>joeldate39@gmail.com</Text>
+            <Text style={[styles.userName, { color: theme.text }]}>
+              {userName}
+            </Text>
+            <Text style={[styles.userEmail, { color: theme.textMuted }]}>
+              joeldate39@gmail.com
+            </Text>
           </View>
 
           {isPremium ? (
             <View style={[styles.subCard, styles.subCardPremium]}>
               <View style={styles.subRow}>
                 <View style={styles.subIconWrap}>
-                  <Ionicons name="diamond" size={26} color={C.coffee} />
+                  <Ionicons name="diamond" size={26} color={"white"} />
                 </View>
                 <View style={{ flex: 1 }}>
                   <View style={styles.premiumBadge}>
                     <Text style={styles.premiumBadgeText}>PREMIUM ACTIF</Text>
                   </View>
-                  <Text style={styles.subTitle}>Accès complet débloqué</Text>
-                  <Text style={styles.subSub}>
+                  <Text style={[styles.subTitle, { color: theme.text }]}>
+                    Accès complet débloqué
+                  </Text>
+                  <Text style={[styles.subSub, { color: theme.textMuted }]}>
                     Face Swap · Styles illimités · Export HD
                   </Text>
                 </View>
               </View>
-              <TouchableOpacity
-                onPress={() => setIsPremium(false)}
-              >
+              <TouchableOpacity onPress={() => setIsPremium(false)}>
                 <View style={styles.manageBtn}>
-                  <Text style={styles.manageBtnText}>Gérer l'abonnement</Text>
+                  <Text style={[styles.manageBtnText, { color: theme.accent }]}>
+                    Gérer l'abonnement
+                  </Text>
                 </View>
               </TouchableOpacity>
             </View>
@@ -106,11 +115,13 @@ export default function ParamScreen() {
             <View style={styles.subCard}>
               <View style={styles.subRow}>
                 <View style={styles.subIconWrap}>
-                  <Ionicons name="diamond-outline" size={26} color={C.soft} />
+                  <Ionicons name="diamond-outline" size={26} color="#FFFFFF" />
                 </View>
                 <View style={{ flex: 1 }}>
-                  <Text style={styles.subTitle}>Plan Gratuit</Text>
-                  <Text style={styles.subSub}>
+                  <Text style={[styles.subTitle, { color: theme.card }]}>
+                    Plan Gratuit
+                  </Text>
+                  <Text style={[styles.subSub, { color: theme.textMuted }]}>
                     Premium pour FaceSwap et exports HD
                   </Text>
                 </View>
@@ -119,14 +130,16 @@ export default function ParamScreen() {
                 style={styles.upgradeBtn}
                 onPress={() => setIsPremium(true)}
               >
-                <Text style={styles.upgradeBtnText}>
+                <Text style={[styles.upgradeBtnText, { color: "white" }]}>
                   Passer Premium — 9,99 €/mois
                 </Text>
               </TouchableOpacity>
             </View>
           )}
 
-          <Text style={styles.sectionLabel}>PARAMETRES</Text>
+          <Text style={[styles.sectionLabel, { color: theme.textMuted }]}>
+            PARAMETRES
+          </Text>
 
           <TouchableOpacity
             activeOpacity={0.75}
@@ -146,14 +159,62 @@ export default function ParamScreen() {
                     color={C.coffee}
                   />
                 </View>
-                <Text style={styles.menuLabel}>Langue</Text>
+                <Text style={[styles.menuLabel, { color: theme.text }]}>
+                  Langue
+                </Text>
               </View>
               <View style={styles.menuRight}>
-                <Text style={styles.menuValue}>{langLabel}</Text>
-                <Ionicons name="chevron-forward" size={15} color={C.soft} />
+                <Text style={[styles.menuValue, { color: theme.textMuted }]}>
+                  {langLabel}
+                </Text>
+                <Ionicons
+                  name="chevron-forward"
+                  size={15}
+                  color={theme.textMuted}
+                />
               </View>
             </View>
           </TouchableOpacity>
+
+          <View style={styles.menuItem}>
+            <View style={styles.menuLeft}>
+              <View
+                style={[
+                  styles.menuIconWrap,
+                  {
+                    backgroundColor:
+                      themeMode === "dark"
+                        ? "rgba(200,149,106,0.12)"
+                        : theme.accentSoft,
+                  },
+                ]}
+              >
+                <Ionicons
+                  name={themeMode === "dark" ? "moon-outline" : "sunny-outline"}
+                  size={19}
+                  color={themeMode === "dark" ? C.coffee : theme.text}
+                />
+              </View>
+              <View>
+                <Text style={[styles.menuLabel, { color: theme.text }]}>
+                  Mode thème
+                </Text>
+                <Text style={[styles.menuSubLabel, { color: theme.textMuted }]}>
+                  {" "}
+                  {themeMode === "dark" ? "Sombre" : "Clair"}{" "}
+                </Text>
+              </View>
+            </View>
+            <Switch
+              value={themeMode === "dark"}
+              onValueChange={(value) => setThemeMode(value ? "dark" : "light")}
+              trackColor={{
+                false: theme.accentSoft,
+                true: "rgba(200,149,106,0.5)",
+              }}
+              thumbColor={themeMode === "dark" ? C.coffee : "#4A5875"}
+            />
+          </View>
 
           <View style={styles.menuItem}>
             <View style={styles.menuLeft}>
@@ -169,7 +230,9 @@ export default function ParamScreen() {
                   color={C.coffee}
                 />
               </View>
-              <Text style={styles.menuLabel}>Notifications</Text>
+              <Text style={[styles.menuLabel, { color: theme.text }]}>
+                Notifications
+              </Text>
             </View>
             <Switch
               value={notificationsEnabled}
@@ -191,23 +254,37 @@ export default function ParamScreen() {
                     { backgroundColor: "rgba(200,149,106,0.12)" },
                   ]}
                 >
-                  <Ionicons name="image-outline" size={19} color={C.coffee} />
+                  <Ionicons
+                    name="image-outline"
+                    size={19}
+                    color={theme.accent}
+                  />
                 </View>
                 <View>
-                  <Text style={styles.menuLabel}>Qualité des exports</Text>
+                  <Text style={[styles.menuLabel, { color: theme.text }]}>
+                    Qualité des exports
+                  </Text>
                   {exportQuality === "ultra" && !isPremium && (
-                    <Text style={styles.menuSubLabel}>Requiert Premium</Text>
+                    <Text
+                      style={[styles.menuSubLabel, { color: theme.textMuted }]}
+                    >
+                      Requiert Premium
+                    </Text>
                   )}
                 </View>
               </View>
               <View style={styles.menuRight}>
-                <Text style={styles.menuValue}>{qualityLabel}</Text>
+                <Text style={[styles.menuValue, { color: theme.textMuted }]}>
+                  {qualityLabel}
+                </Text>
                 <Ionicons name="chevron-forward" size={15} color={C.soft} />
               </View>
             </View>
           </TouchableOpacity>
 
-          <Text style={styles.sectionLabel}>ASSISTANCE</Text>
+          <Text style={[styles.sectionLabel, { color: theme.textMuted }]}>
+            ASSISTANCE
+          </Text>
 
           {[
             { icon: "help-circle-outline" as const, label: "Centre d'aide" },
@@ -232,9 +309,15 @@ export default function ParamScreen() {
                   >
                     <Ionicons name={item.icon} size={19} color={C.khaki} />
                   </View>
-                  <Text style={styles.menuLabel}>{item.label}</Text>
+                  <Text style={[styles.menuLabel, { color: theme.text }]}>
+                    {item.label}
+                  </Text>
                 </View>
-                <Ionicons name="chevron-forward" size={15} color={C.soft} />
+                <Ionicons
+                  name="chevron-forward"
+                  size={15}
+                  color={theme.textMuted}
+                />
               </View>
             </TouchableOpacity>
           ))}
@@ -257,7 +340,9 @@ export default function ParamScreen() {
             </View>
           </TouchableOpacity>
 
-          <Text style={styles.version}>dressflow.ai · v1.0.0</Text>
+          <Text style={[styles.version, { color: theme.textMuted }]}>
+            dressflow.ai · v1.0.0
+          </Text>
         </SafeAreaView>
       </ScrollView>
 
@@ -273,7 +358,9 @@ export default function ParamScreen() {
         >
           <Pressable style={styles.modalBox} onPress={() => {}}>
             <View style={styles.modalBlur}>
-              <Text style={styles.modalTitle}>Langue de l'application</Text>
+              <Text style={[styles.modalTitle, { color: theme.text }]}>
+                Langue de l'application
+              </Text>
               {LANGUAGES.map((l) => (
                 <TouchableOpacity
                   key={l.key}
@@ -288,12 +375,17 @@ export default function ParamScreen() {
                     <Text
                       style={[
                         styles.optionLabel,
-                        language === l.key && { color: C.coffee },
+                        { color: theme.text },
+                        language === l.key && { color: theme.accent },
                       ]}
                     >
                       {l.label}
                     </Text>
-                    <Text style={styles.optionSub}>{l.native}</Text>
+                    <Text
+                      style={[styles.optionSub, { color: theme.textMuted }]}
+                    >
+                      {l.native}
+                    </Text>
                   </View>
                   {language === l.key && (
                     <Ionicons
@@ -321,7 +413,9 @@ export default function ParamScreen() {
         >
           <Pressable style={styles.modalBox} onPress={() => {}}>
             <View style={styles.modalBlur}>
-              <Text style={styles.modalTitle}>Qualité des exports</Text>
+              <Text style={[styles.modalTitle, { color: theme.card }]}>
+                Qualité des exports
+              </Text>
               {QUALITIES.map((q) => {
                 const locked = q.key === "ultra" && !isPremium;
                 return (
@@ -347,19 +441,31 @@ export default function ParamScreen() {
                         <Text
                           style={[
                             styles.optionLabel,
-                            exportQuality === q.key && { color: C.coffee },
-                            locked && { color: C.soft },
+                            { color: theme.text },
+                            exportQuality === q.key && { color: theme.accent },
+                            locked && { color: theme.textMuted },
                           ]}
                         >
                           {q.label}
                         </Text>
                         {locked && (
                           <View style={styles.lockedBadge}>
-                            <Text style={styles.lockedBadgeText}>Premium</Text>
+                            <Text
+                              style={[
+                                styles.lockedBadgeText,
+                                { color: theme.accent },
+                              ]}
+                            >
+                              Premium
+                            </Text>
                           </View>
                         )}
                       </View>
-                      <Text style={styles.optionSub}>{q.desc}</Text>
+                      <Text
+                        style={[styles.optionSub, { color: theme.textMuted }]}
+                      >
+                        {q.desc}
+                      </Text>
                     </View>
                     {exportQuality === q.key && !locked ? (
                       <Ionicons
@@ -398,25 +504,24 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     borderWidth: 2,
     borderColor: C.coffee,
-    backgroundColor: "rgba(255, 255, 255, 0.09)",
+    backgroundColor: "rgba(90, 57, 18, 0.12)",
     marginBottom: 14,
   },
   userName: {
     fontSize: 22,
     fontWeight: "700",
-    color: C.cream,
     marginBottom: 4,
   },
-  userEmail: { fontSize: 13, color: C.soft },
+  userEmail: { fontSize: 13 },
   subCard: {
     marginHorizontal: 16,
     marginBottom: 24,
-    borderRadius: 18,
+    borderRadius: 30,
     overflow: "hidden",
-    padding: 18,
+    padding: 24,
     borderWidth: 1,
     borderColor: C.border,
-    backgroundColor: "rgba(255,255,255,0.09)",
+    backgroundColor: "rgba(2, 12, 33, 0.75)",
   },
   subCardPremium: {
     borderColor: "rgba(200,149,106,0.25)",
@@ -452,16 +557,15 @@ const styles = StyleSheet.create({
   premiumBadgeText: {
     fontSize: 9,
     fontWeight: "800",
-    color: C.coffee,
+    color: C.border,
     letterSpacing: 1.2,
   },
   subTitle: {
     fontSize: 16,
     fontWeight: "700",
-    color: C.cream,
     marginBottom: 3,
   },
-  subSub: { fontSize: 12, color: C.soft, lineHeight: 18 },
+  subSub: { fontSize: 12, lineHeight: 18 },
   upgradeBtn: {
     alignItems: "center",
     justifyContent: "center",
@@ -470,7 +574,7 @@ const styles = StyleSheet.create({
     paddingVertical: 13,
     marginTop: 14,
   },
-  upgradeBtnText: { color: C.cream, fontWeight: "700", fontSize: 14 },
+  upgradeBtnText: { fontWeight: "700", fontSize: 14 },
   manageBtn: {
     alignItems: "center",
     paddingVertical: 11,
@@ -480,14 +584,13 @@ const styles = StyleSheet.create({
     borderColor: "rgba(200,149,106,0.3)",
     backgroundColor: "rgba(255,255,255,0.09)",
   },
-  manageBtnText: { color: C.coffee, fontWeight: "600", fontSize: 13 },
+  manageBtnText: { fontWeight: "600", fontSize: 13 },
   sectionLabel: {
     marginLeft: 16,
     marginTop: 22,
     marginBottom: 8,
     fontSize: 11,
     fontWeight: "700",
-    color: C.soft,
     letterSpacing: 1.2,
   },
   menuItem: {
@@ -513,19 +616,17 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-  menuLabel: { fontSize: 15, color: C.cream, fontWeight: "500" },
+  menuLabel: { fontSize: 15, fontWeight: "500" },
   menuSubLabel: { fontSize: 11, color: "#E05555", marginTop: 1 },
-  menuValue: { fontSize: 13, color: C.soft },
+  menuValue: { fontSize: 13 },
   version: {
     textAlign: "center",
-    color: C.khaki,
     fontSize: 11,
     marginTop: 32,
     opacity: 0.6,
   },
   modalOverlay: {
     flex: 1,
-    backgroundColor: "rgba(0, 0, 0, 0.96)",
     alignItems: "center",
     justifyContent: "center",
   },
@@ -534,14 +635,13 @@ const styles = StyleSheet.create({
     padding: 24,
     borderWidth: 1,
     borderColor: C.border,
-    backgroundColor: "rgba(255,255,255,0.09)",
+    backgroundColor: "rgba(11, 23, 40, 0.95)",
     borderRadius: 22,
     overflow: "hidden",
   },
   modalTitle: {
     fontSize: 17,
     fontWeight: "800",
-    color: C.cream,
     marginBottom: 20,
   },
   optionRow: {
@@ -552,13 +652,13 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: "rgba(255,255,255,0.06)",
   },
-  optionLabel: { fontSize: 15, color: C.cream, fontWeight: "600" },
-  optionSub: { fontSize: 12, color: C.soft, marginTop: 2 },
+  optionLabel: { fontSize: 15, fontWeight: "600" },
+  optionSub: { fontSize: 12, marginTop: 2 },
   lockedBadge: {
-    backgroundColor: "rgba(200,149,106,0.15)",
+    backgroundColor: "rgba(171, 104, 49, 0.15)",
     borderRadius: 8,
     paddingHorizontal: 7,
     paddingVertical: 2,
   },
-  lockedBadgeText: { fontSize: 10, color: C.coffee, fontWeight: "700" },
+  lockedBadgeText: { fontSize: 10, fontWeight: "700" },
 });

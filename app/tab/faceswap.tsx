@@ -1,17 +1,17 @@
-﻿import React, { useContext, useState } from "react";
-import {
-  View,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
-  Image,
-  ScrollView,
-  Alert,
-  ActivityIndicator,
-} from "react-native";
-import { LinearGradient } from "expo-linear-gradient";
+﻿import { Ionicons } from "@expo/vector-icons";
 import * as ImagePicker from "expo-image-picker";
-import { Ionicons } from "@expo/vector-icons";
+import { LinearGradient } from "expo-linear-gradient";
+import React, { useContext, useState } from "react";
+import {
+    ActivityIndicator,
+    Alert,
+    Image,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View,
+} from "react-native";
 import { SettingsContext } from "../context/SettingsContext";
 
 const C = {
@@ -152,6 +152,7 @@ export default function FaceSwapScreen() {
               <TouchableOpacity
                 style={styles.slotClose}
                 onPress={() => setSourceUri(null)}
+                activeOpacity={1}
               >
                 <View style={styles.closeBtnBlur}>
                   <Ionicons name="close" size={14} color="#E05555" />
@@ -204,6 +205,7 @@ export default function FaceSwapScreen() {
               <TouchableOpacity
                 style={styles.slotClose}
                 onPress={() => setTargetUri(null)}
+                activeOpacity={1}
               >
                 <View style={styles.closeBtnBlur}>
                   <Ionicons name="close" size={14} color="#E05555" />
@@ -212,7 +214,8 @@ export default function FaceSwapScreen() {
             </View>
           ) : (
             <View
-              style={[styles.slotEmpty, { borderColor: "rgba(45,106,79,0.5)" },]}>
+              style={[styles.slotEmpty, { borderColor: "rgba(45,106,79,0.5)" }]}
+            >
               <Ionicons
                 name="images-outline"
                 size={40}
@@ -272,7 +275,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     borderWidth: 1.5,
-    borderColor: C.border,
+    borderColor: C.coffee,
     backgroundColor: "rgba(255,255,255,0.09)",
     marginBottom: 24,
   },
@@ -297,7 +300,7 @@ const styles = StyleSheet.create({
     padding: 18,
     borderWidth: 1,
     borderColor: C.border,
-    backgroundColor: "rgba(255,255,255,0.09)",
+    backgroundColor: "rgba(255, 255, 255, 0.16)",
     marginBottom: 28,
     gap: 10,
   },
@@ -325,7 +328,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     paddingVertical: 4,
     borderWidth: 1,
-    borderColor: "rgba(200,149,106,0.25)",
+    borderColor: "rgba(200, 148, 106, 0.78)",
     marginBottom: 10,
   },
   premiumBadgeText: {
@@ -382,9 +385,9 @@ const styles = StyleSheet.create({
   },
   closeBtnBlur: {
     padding: 7,
-    borderWidth: 1,
+    borderWidth: 0,
     borderColor: C.border,
-    backgroundColor: "rgba(255,255,255,0.09)",
+    backgroundColor: "transparent",
   },
   slotEmpty: {
     height: 180,

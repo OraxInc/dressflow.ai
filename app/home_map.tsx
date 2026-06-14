@@ -1,22 +1,28 @@
 import { Ionicons } from "@expo/vector-icons";
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import React, {
+    useCallback,
+    useContext,
+    useEffect,
+    useMemo,
+    useState,
+} from "react";
 import {
-  Dimensions,
-  Modal,
-  Pressable,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
+    Dimensions,
+    Modal,
+    Pressable,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View,
 } from "react-native";
 import {
-  SafeAreaView,
-  useSafeAreaInsets,
+    SafeAreaView,
+    useSafeAreaInsets,
 } from "react-native-safe-area-context";
 import { TabView } from "react-native-tab-view";
+import { SettingsContext } from "./context/SettingsContext";
 
 import { TabFocusProvider } from "./context/TabFocusContext";
-import { NeutralBlurView } from "../components/NeutralBlurView";
 import Hairstyle from "./tab/cheveux";
 import FaceSwap from "./tab/faceswap";
 import Inpaint from "./tab/inpaint";
@@ -42,33 +48,34 @@ type TabRoute = {
 };
 
 const PACKS = [
-  { label: "100 diamants",   price: "$0.99",  amount: 100 },
-  { label: "500 diamants",   price: "$3.99",  amount: 500 },
-  { label: "1 000 diamants", price: "$6.99",  amount: 1000 },
+  { label: "100 diamants", price: "$0.99", amount: 100 },
+  { label: "500 diamants", price: "$3.99", amount: 500 },
+  { label: "1 000 diamants", price: "$6.99", amount: 1000 },
 ];
 
 export default function HomeMap() {
   const insets = useSafeAreaInsets();
-  const [index, setIndex]           = useState(0);
-  const [credits, setCredits]       = useState(250);
-  const [modalVisible, setModal]    = useState(false);
+  const { theme } = useContext(SettingsContext);
+  const [index, setIndex] = useState(0);
+  const [credits, setCredits] = useState(250);
+  const [modalVisible, setModal] = useState(false);
 
   const routes = useMemo<TabRoute[]>(
     () => [
-      { key: "inpaint",   title: "Inpaint",   icon: "color-wand-outline" },
-      { key: "home",      title: "Style",      icon: "shirt-outline" },
-      { key: "hair",      title: "Cheveux",    icon: "cut-outline" },
-      { key: "faceswap",  title: "FaceSwap",   icon: "person-circle-outline" },
-      { key: "settings",  title: "Réglages",   icon: "settings-outline" },
+      { key: "inpaint", title: "Inpaint", icon: "color-wand-outline" },
+      { key: "home", title: "Style", icon: "shirt-outline" },
+      { key: "hair", title: "Cheveux", icon: "cut-outline" },
+      { key: "faceswap", title: "FaceSwap", icon: "person-circle-outline" },
+      { key: "settings", title: "Réglages", icon: "settings-outline" },
     ],
     [],
   );
 
   const sceneMap: Record<string, React.ComponentType<any>> = useMemo(
     () => ({
-      inpaint:  Inpaint,
-      home:     Accueil,
-      hair:     Hairstyle,
+      inpaint: Inpaint,
+      home: Accueil,
+      hair: Hairstyle,
       faceswap: FaceSwap,
       settings: Param,
     }),
@@ -95,7 +102,7 @@ export default function HomeMap() {
   }, [index, routes.length]);
 
   return (
-    <View style={{ flex: 1 }}>
+    <View style={{ flex: 1, backgroundColor: theme.screen }}>
       {/* Barre de crédits flottante */}
       <TouchableOpacity
         onPress={() => setModal(true)}
@@ -129,7 +136,9 @@ export default function HomeMap() {
                 style={styles.navItem}
                 activeOpacity={0.75}
               >
-                <View style={[styles.iconWrap, active && styles.iconWrapActive]}>
+                <View
+                  style={[styles.iconWrap, active && styles.iconWrapActive]}
+                >
                   <Ionicons
                     name={route.icon}
                     size={22}
@@ -157,7 +166,6 @@ export default function HomeMap() {
         <Pressable style={styles.backdrop} onPress={() => setModal(false)}>
           {/* stopPropagation pour que le clic sur la card ne ferme pas */}
           <Pressable style={styles.card} onPress={() => {}}>
-
             <View style={styles.cardHeader}>
               <Ionicons name="diamond" size={28} color={C.coffee} />
               <Text style={styles.cardTitle}>Recharger des diamants</Text>
@@ -219,7 +227,6 @@ export default function HomeMap() {
             >
               <Text style={styles.cancelText}>Annuler</Text>
             </TouchableOpacity>
-
           </Pressable>
         </Pressable>
       </Modal>
@@ -259,11 +266,17 @@ const styles = StyleSheet.create({
     paddingBottom: 8,
     paddingHorizontal: 8,
   },
-  navItem:      { flex: 1, alignItems: "center", justifyContent: "center" },
-  iconWrap:     { width: 50, height: 42, borderRadius: 24, alignItems: "center", justifyContent: "center" },
+  navItem: { flex: 1, alignItems: "center", justifyContent: "center" },
+  iconWrap: {
+    width: 50,
+    height: 42,
+    borderRadius: 24,
+    alignItems: "center",
+    justifyContent: "center",
+  },
   iconWrapActive: { backgroundColor: C.activeBg },
-  label:        { fontSize: 10, color: C.inactive, marginTop: 2, fontWeight: "500" },
-  labelActive:  { color: C.active, fontWeight: "700" },
+  label: { fontSize: 10, color: C.inactive, marginTop: 2, fontWeight: "500" },
+  labelActive: { color: C.active, fontWeight: "700" },
 
   /* Modal */
   backdrop: {
@@ -312,7 +325,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: "rgba(255,255,255,0.09)",
   },
-  packLeft:  { flexDirection: "row", alignItems: "center", gap: 12 },
+  packLeft: { flexDirection: "row", alignItems: "center", gap: 12 },
   packLabel: { fontSize: 16, color: C.cream, fontWeight: "600" },
   packPrice: { fontSize: 16, color: C.coffee, fontWeight: "800" },
 
@@ -335,7 +348,7 @@ const styles = StyleSheet.create({
     marginBottom: 18,
   },
   subLabel: { fontSize: 16, color: "#fff", fontWeight: "700" },
-  subMeta:  { fontSize: 12, color: "rgba(255,255,255,0.75)", marginTop: 2 },
+  subMeta: { fontSize: 12, color: "rgba(255,255,255,0.75)", marginTop: 2 },
   subPrice: { fontSize: 17, color: "#fff", fontWeight: "900" },
 
   /* Annuler */

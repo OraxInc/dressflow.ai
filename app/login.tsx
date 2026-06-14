@@ -1,19 +1,20 @@
-﻿import "./globals.css";
-import React, { useState } from "react";
-import {
-  View,
-  Text,
-  TextInput,
-  Pressable,
-  Image,
-  StyleSheet,
-  Dimensions,
-  KeyboardAvoidingView,
-  Platform,
-  Alert,
-} from "react-native";
+﻿import { Ionicons } from "@expo/vector-icons";
 import { Link, router } from "expo-router";
-import { Ionicons } from "@expo/vector-icons";
+import React, { useContext, useState } from "react";
+import {
+    Alert,
+    Dimensions,
+    Image,
+    KeyboardAvoidingView,
+    Platform,
+    Pressable,
+    StyleSheet,
+    Text,
+    TextInput,
+    View,
+} from "react-native";
+import { SettingsContext } from "./context/SettingsContext";
+import "./globals.css";
 
 const { width } = Dimensions.get("window");
 
@@ -21,12 +22,13 @@ const C = {
   coffee: "#C8956A",
   green: "#2D6A4F",
   cream: "#F0EBE3",
-  soft: "#8B8F9E",
+  soft: "#b6b8be",
   khaki: "#8B8760",
   border: "rgba(255,255,255,0.11)",
 };
 
 export default function LoginScreen() {
+  const { theme } = useContext(SettingsContext);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPass, setShowPass] = useState(false);
@@ -40,7 +42,7 @@ export default function LoginScreen() {
   };
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: theme.screen }]}>
       <KeyboardAvoidingView
         style={styles.inner}
         behavior={Platform.OS === "ios" ? "padding" : "height"}
@@ -58,11 +60,18 @@ export default function LoginScreen() {
         {/* Formulaire */}
         <View style={styles.formCard}>
           <Text style={styles.formTitle}>Connexion</Text>
-          <Text style={styles.formSub}>Bienvenue ! Entre tes informations.</Text>
+          <Text style={styles.formSub}>
+            Bienvenue ! Entre tes informations.
+          </Text>
 
           {/* Email */}
           <View style={styles.inputWrap}>
-            <Ionicons name="mail-outline" size={18} color={C.soft} style={styles.inputIcon} />
+            <Ionicons
+              name="mail-outline"
+              size={18}
+              color={C.soft}
+              style={styles.inputIcon}
+            />
             <TextInput
               style={styles.input}
               placeholder="Adresse email"
@@ -76,7 +85,12 @@ export default function LoginScreen() {
 
           {/* Password */}
           <View style={styles.inputWrap}>
-            <Ionicons name="lock-closed-outline" size={18} color={C.soft} style={styles.inputIcon} />
+            <Ionicons
+              name="lock-closed-outline"
+              size={18}
+              color={C.soft}
+              style={styles.inputIcon}
+            />
             <TextInput
               style={[styles.input, { flex: 1 }]}
               placeholder="Mot de passe"
@@ -85,14 +99,24 @@ export default function LoginScreen() {
               onChangeText={setPassword}
               secureTextEntry={!showPass}
             />
-            <Pressable onPress={() => setShowPass(!showPass)} style={styles.showPassBtn}>
-              <Ionicons name={showPass ? "eye-off-outline" : "eye-outline"} size={18} color={C.soft} />
+            <Pressable
+              onPress={() => setShowPass(!showPass)}
+              style={styles.showPassBtn}
+            >
+              <Ionicons
+                name={showPass ? "eye-off-outline" : "eye-outline"}
+                size={18}
+                color={C.soft}
+              />
             </Pressable>
           </View>
 
           <Pressable
             onPress={handleLogin}
-            style={({ pressed }) => [styles.loginBtn, pressed && { opacity: 0.85 }]}
+            style={({ pressed }) => [
+              styles.loginBtn,
+              pressed && { opacity: 0.85 },
+            ]}
           >
             <Text style={styles.loginBtnText}>Se connecter</Text>
           </Pressable>
@@ -120,7 +144,12 @@ export default function LoginScreen() {
         <View style={styles.footerRow}>
           <Text style={styles.footerText}>Pas encore de compte ? </Text>
           <Pressable>
-            <Text style={[styles.footerText, { color: C.coffee, fontWeight: "700" }]}>
+            <Text
+              style={[
+                styles.footerText,
+                { color: C.coffee, fontWeight: "700" },
+              ]}
+            >
               S'inscrire
             </Text>
           </Pressable>
@@ -139,11 +168,21 @@ export default function LoginScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: "#031227e9" },
-  inner: { flex: 1, alignItems: "center", justifyContent: "center", paddingHorizontal: 24 },
+  inner: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    paddingHorizontal: 24,
+  },
 
   logoWrap: { alignItems: "center", marginBottom: 32 },
   logo: { width: width * 0.4, height: 70 },
-  appName: { fontSize: 22, fontWeight: "800", color: C.cream, letterSpacing: 2, marginTop: 8 },
+  appName: {
+    fontSize: 18,
+    color: "#3537a3",
+    letterSpacing: 2,
+    marginTop: 8,
+  },
 
   formCard: {
     width: "100%",
@@ -151,17 +190,23 @@ const styles = StyleSheet.create({
     overflow: "hidden",
     padding: 24,
     borderWidth: 1,
-    borderColor: C.border, backgroundColor: "rgba(255, 255, 255, 0.12)",
+    borderColor: C.border,
+    backgroundColor: "rgba(2, 12, 33, 0.75)",
     marginBottom: 20,
   },
-  formTitle: { fontSize: 22, fontWeight: "800", color: C.cream, marginBottom: 4 },
+  formTitle: {
+    fontSize: 22,
+    fontWeight: "800",
+    color: C.cream,
+    marginBottom: 4,
+  },
   formSub: { fontSize: 13, color: C.soft, marginBottom: 22 },
 
   inputWrap: {
     flexDirection: "row",
     alignItems: "center",
     borderWidth: 1,
-    borderColor: C.border, 
+    borderColor: C.border,
     backgroundColor: "rgba(255, 255, 255, 0.09)",
     borderRadius: 14,
     paddingHorizontal: 14,
@@ -181,7 +226,12 @@ const styles = StyleSheet.create({
   },
   loginBtnText: { color: C.cream, fontWeight: "800", fontSize: 16 },
 
-  divider: { flexDirection: "row", alignItems: "center", marginVertical: 18, gap: 10 },
+  divider: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginVertical: 18,
+    gap: 10,
+  },
   dividerLine: { flex: 1, height: 1, backgroundColor: C.border },
   dividerText: { color: C.soft, fontSize: 12 },
 
@@ -195,7 +245,8 @@ const styles = StyleSheet.create({
     overflow: "hidden",
     paddingVertical: 12,
     borderWidth: 1,
-    borderColor: C.border, backgroundColor: "rgba(255,255,255,0.09)",
+    borderColor: C.border,
+    backgroundColor: "rgba(255, 255, 255, 0.12)",
     gap: 8,
   },
   socialBtnText: { color: C.cream, fontSize: 14, fontWeight: "600" },

@@ -59,7 +59,7 @@ const styles = StyleSheet.create({
     height: 46,
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: "#2b4fc5",
+    backgroundColor: "#2e50af",
     borderRadius: 32,
   },
   ctaBtnText: {
