@@ -150,7 +150,7 @@ export default function LoginScreen() {
                 { color: C.coffee, fontWeight: "700" },
               ]}
             >
-              S'inscrire
+              S&apos;inscrire
             </Text>
           </Pressable>
         </View>

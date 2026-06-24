@@ -4,7 +4,6 @@ import React, { useContext, useState } from "react";
 import {
     Modal,
     Pressable,
-    SafeAreaView,
     ScrollView,
     StyleSheet,
     Switch,
@@ -12,6 +11,7 @@ import {
     TouchableOpacity,
     View,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import {
     AppLanguage,
     ExportQuality,
@@ -106,7 +106,7 @@ export default function ParamScreen() {
               <TouchableOpacity onPress={() => setIsPremium(false)}>
                 <View style={styles.manageBtn}>
                   <Text style={[styles.manageBtnText, { color: theme.accent }]}>
-                    Gérer l'abonnement
+                    Gérer l&apos;abonnement
                   </Text>
                 </View>
               </TouchableOpacity>
@@ -359,7 +359,7 @@ export default function ParamScreen() {
           <Pressable style={styles.modalBox} onPress={() => {}}>
             <View style={styles.modalBlur}>
               <Text style={[styles.modalTitle, { color: theme.text }]}>
-                Langue de l'application
+                Langue de l&apos;application
               </Text>
               {LANGUAGES.map((l) => (
                 <TouchableOpacity

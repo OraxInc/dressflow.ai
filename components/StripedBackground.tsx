@@ -12,7 +12,7 @@ const STRIPES = [
 
 export function StripedBackground() {
   return (
-    <View pointerEvents="none" style={StyleSheet.absoluteFillObject}>
+    <View pointerEvents="none" style={StyleSheet.absoluteFill}>
       <View style={styles.container}>
         {STRIPES.map((color) => (
           <View

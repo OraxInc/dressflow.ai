@@ -1,7 +1,6 @@
 import { Ionicons } from "@expo/vector-icons";
-import * as FileSystem from "expo-file-system";
+import * as FileSystem from "expo-file-system/legacy";
 import * as ImagePicker from "expo-image-picker";
-import * as MediaLibrary from "expo-media-library";
 import React, { useCallback, useMemo, useRef, useState } from "react";
 import {
   ActivityIndicator,
@@ -21,27 +20,16 @@ import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import Reanimated, {
   runOnJS,
   useAnimatedProps,
+  useAnimatedStyle,
   useSharedValue,
 } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { useTabFocused } from "../context/TabFocusContext";
-import { useImageFade } from "../../hooks/useImageFade";
-import Svg, {
-  Defs,
-  FeComposite,
-  FeFlood,
-  FeGaussianBlur,
-  FeMerge,
-  FeMergeNode,
-  Filter,
-  Path,
-} from "react-native-svg";
+import Svg, { Path } from "react-native-svg";
+import { NeutralBlurView } from "../../components/NeutralBlurView";
 import { ZoomableView } from "../../components/ZoomableView";
-import {
-  getAndroidBlurProps,
-  NeutralBlurView,
-} from "../../components/NeutralBlurView";
+import { useImageFade } from "../../hooks/useImageFade";
 import { XAI_API_KEY } from "../../lib/apiKeys";
+import { useTabFocused } from "../context/TabFocusContext";
 
 // Composant Path animé — mis à jour sur le UI thread, zéro bridge JS
 const AnimatedPath = Reanimated.createAnimatedComponent(Path);
@@ -57,7 +45,6 @@ const C = {
 
 export default function InpaintScreen() {
   const insets = useSafeAreaInsets();
-  const blurTargetRef = useRef<View | null>(null);
 
   const [imageUri, setImageUri] = useState<string | null>(null);
   const [imageBase64, setImageBase64] = useState<string | null>(null);
@@ -291,6 +278,7 @@ export default function InpaintScreen() {
   const downloadImage = async () => {
     if (!displayUri) return;
     try {
+      const MediaLibrary = await import("expo-media-library/legacy");
       const { status } = await MediaLibrary.requestPermissionsAsync();
       if (status !== "granted") {
         Alert.alert(
@@ -347,6 +335,8 @@ export default function InpaintScreen() {
 
   const isFocused = useTabFocused();
   const imageOpacity = useImageFade(displayUri ?? imageUri, isFocused);
+  const imageAnimStyle = useAnimatedStyle(() => ({ opacity: imageOpacity.value }));
+  const shouldShowDrawingLayer = tool !== null || strokes.length > 0;
   const translateY = inputAnim.interpolate({
     inputRange: [0, 1],
     outputRange: [120, 0],
@@ -355,7 +345,6 @@ export default function InpaintScreen() {
     inputRange: [0, 1],
     outputRange: [0, 1],
   });
-  const bgBlur = getAndroidBlurProps(blurTargetRef) as any;
 
   return (
     <View style={styles.container}>
@@ -375,7 +364,6 @@ export default function InpaintScreen() {
               pointerEvents="none"
               style={styles.addButtonBlur}
               intensity={50}
-              {...bgBlur}
             />
             <Ionicons name="add" size={52} color="#FFFFFF" />
           </TouchableOpacity>
@@ -383,12 +371,14 @@ export default function InpaintScreen() {
       ) : (
         <>
           <View style={styles.imageWrap}>
-            <ZoomableView style={StyleSheet.absoluteFillObject} enabled={!tool}>
-              <Animated.Image
-                source={{ uri: displayUri ?? imageUri }}
-                style={[styles.image, { opacity: imageOpacity }]}
-                resizeMode="cover"
-              />
+            <ZoomableView style={StyleSheet.absoluteFill} enabled={!tool}>
+              <Reanimated.View style={[StyleSheet.absoluteFill, imageAnimStyle]}>
+                <Image
+                  source={{ uri: displayUri ?? imageUri }}
+                  style={styles.image}
+                  resizeMode="cover"
+                />
+              </Reanimated.View>
             </ZoomableView>
 
             {/* Référence attachée */}
@@ -414,89 +404,65 @@ export default function InpaintScreen() {
             )}
 
             {/* Canvas SVG + GestureDetector UI thread */}
-            <GestureDetector gesture={drawGesture}>
-              <View
-                style={StyleSheet.absoluteFillObject}
-                collapsable={false}
-                pointerEvents={tool ? "box-only" : "none"}
-              >
-                <Svg style={StyleSheet.absoluteFillObject}>
-                  <Defs>
-                    <Filter
-                      id="magicGlow"
-                      x="-70%"
-                      y="-70%"
-                      width="240%"
-                      height="240%"
-                    >
-                      <FeGaussianBlur
-                        in="SourceAlpha"
-                        stdDeviation="12"
-                        result="bigBlur"
-                      />
-                      <FeFlood
-                        floodColor="#FFB300"
-                        floodOpacity="0.92"
-                        result="amber"
-                      />
-                      <FeComposite
-                        in="amber"
-                        in2="bigBlur"
-                        operator="in"
-                        result="amberGlow"
-                      />
-                      <FeGaussianBlur
-                        in="SourceAlpha"
-                        stdDeviation="4"
-                        result="innerBlur"
-                      />
-                      <FeFlood
-                        floodColor="#FFFFFF"
-                        floodOpacity="0.5"
-                        result="white"
-                      />
-                      <FeComposite
-                        in="white"
-                        in2="innerBlur"
-                        operator="in"
-                        result="innerGlow"
-                      />
-                      <FeMerge>
-                        <FeMergeNode in="amberGlow" />
-                        <FeMergeNode in="innerGlow" />
-                        <FeMergeNode in="SourceGraphic" />
-                      </FeMerge>
-                    </Filter>
-                  </Defs>
+            {shouldShowDrawingLayer && (
+              <GestureDetector gesture={drawGesture}>
+                <View
+                  style={StyleSheet.absoluteFill}
+                  collapsable={false}
+                  pointerEvents={tool ? "box-only" : "none"}
+                >
+                  <Svg style={styles.drawingSvg}>
+                    {/* Traits commités (avec filtre glow sur magic) */}
+                    {strokes.map((s, i) =>
+                      s.glow ? (
+                        <React.Fragment key={i}>
+                          <Path
+                            d={s.d}
+                            stroke="#FFB300"
+                            strokeOpacity={0.34}
+                            strokeWidth={22}
+                            fill="none"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                          />
+                          <Path
+                            d={s.d}
+                            stroke="#FFFFFF"
+                            strokeOpacity={0.92}
+                            strokeWidth={s.width}
+                            fill="none"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                          />
+                        </React.Fragment>
+                      ) : (
+                        <Path
+                          key={i}
+                          d={s.d}
+                          stroke={s.color}
+                          strokeWidth={s.width}
+                          fill="none"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        />
+                      ),
+                    )}
 
-                  {/* Traits commités (avec filtre glow sur magic) */}
-                  {strokes.map((s, i) => (
-                    <Path
-                      key={i}
-                      d={s.d}
-                      stroke={s.color}
-                      strokeWidth={s.width}
+                    {/* Trait live — UI thread, sans filtre pour 0 latence */}
+                    <AnimatedPath
+                      animatedProps={animatedPathProps}
+                      stroke={
+                        tool === "magic" ? "#FFFFFF" : "rgba(255,255,255,0.62)"
+                      }
+                      strokeWidth={tool === "magic" ? 3 : 28}
                       fill="none"
                       strokeLinecap="round"
                       strokeLinejoin="round"
-                      filter={s.glow ? "url(#magicGlow)" : undefined}
                     />
-                  ))}
-
-                  {/* Trait live — UI thread, sans filtre pour 0 latence */}
-                  <AnimatedPath
-                    animatedProps={animatedPathProps}
-                    stroke={
-                      tool === "magic" ? "#FFFFFF" : "rgba(255,255,255,0.62)"
-                    }
-                    strokeWidth={tool === "magic" ? 3 : 28}
-                    fill="none"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                </Svg>
-              </View>
-            </GestureDetector>
+                  </Svg>
+                </View>
+              </GestureDetector>
+            )}
 
             {/* Boutons haut */}
             <TouchableOpacity
@@ -535,7 +501,7 @@ export default function InpaintScreen() {
           {/* Barre outils + input */}
           <KeyboardAvoidingView
             style={styles.inputLayer}
-            behavior={Platform.OS === "ios" ? "padding" : "height"}
+            behavior={Platform.OS === "ios" ? "padding" : undefined}
           >
             <Animated.View
               style={[
@@ -668,11 +634,17 @@ export default function InpaintScreen() {
 
 const styles = StyleSheet.create({
   container: {
-    ...StyleSheet.absoluteFillObject,
+    flex: 1,
     backgroundColor: "#091f3fe9",
   },
 
-  centerWrap: { flex: 1, alignItems: "center", justifyContent: "center" },
+  centerWrap: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    paddingHorizontal: 24,
+    paddingBottom: 88,
+  },
   emptyHint: {
     fontSize: 15,
     color: "rgba(196,199,208,0.9)",
@@ -690,7 +662,7 @@ const styles = StyleSheet.create({
     borderColor: "rgb(240, 227, 227)",
     backgroundColor: "rgba(255,255,255,0.09)",
   },
-  addButtonBlur: { ...StyleSheet.absoluteFillObject },
+  addButtonBlur: { ...StyleSheet.absoluteFill },
 
   imageWrap: {
     flex: 1,
@@ -698,7 +670,15 @@ const styles = StyleSheet.create({
     backgroundColor: "#000",
     overflow: "hidden",
   },
-  image: { ...StyleSheet.absoluteFillObject },
+  image: { width: "100%", height: "100%" },
+  drawingSvg: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: "transparent",
+  },
 
   attachWrap: {
     position: "absolute",
@@ -760,10 +740,27 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(255,255,255,0.09)",
   },
 
-  inputLayer: { position: "absolute", bottom: 0, left: 0, right: 0 },
-  inputWrap: { marginHorizontal: 16, gap: 8 },
+  inputLayer: {
+    position: "absolute",
+    bottom: 0,
+    left: 0,
+    right: 0,
+    zIndex: 100,
+    alignItems: "center",
+  },
+  inputWrap: {
+    width: "100%",
+    maxWidth: 520,
+    paddingHorizontal: 16,
+    gap: 8,
+  },
 
-  toolRow: { flexDirection: "row", gap: 8 },
+  toolRow: {
+    flexDirection: "row",
+    justifyContent: "center",
+    flexWrap: "wrap",
+    gap: 8,
+  },
   toolBtn: {
     alignItems: "center",
     justifyContent: "center",

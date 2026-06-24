@@ -1,44 +1,42 @@
-import * as ExpoBlur from "expo-blur";
 import React from "react";
-import { View } from "react-native";
+import { View, ViewStyle, StyleProp } from "react-native";
 
-const ExpoBlurCompat = ExpoBlur as typeof ExpoBlur & {
-  BlurTargetView?: React.ComponentType<any>;
-};
+export const BlurTargetView = View;
+export const hasModernBlurTarget = false;
 
-export const BlurTargetView = (ExpoBlurCompat.BlurTargetView ?? View) as any;
-export const hasModernBlurTarget = Boolean(ExpoBlurCompat.BlurTargetView);
-
-export function getAndroidBlurProps(blurTarget?: React.RefObject<View | null>) {
-  if (!hasModernBlurTarget) return { experimentalBlurMethod: "dimezisBlurView" };
-  return blurTarget
-    ? {
-        blurMethod: "dimezisBlurViewSdk31Plus",
-        blurTarget,
-      }
-    : { blurMethod: "dimezisBlurViewSdk31Plus" };
+export function getAndroidBlurProps() {
+  return {};
 }
 
-type NeutralBlurViewProps = React.ComponentProps<typeof ExpoBlur.BlurView> & {
-  blurMethod?: "none" | "dimezisBlurView" | "dimezisBlurViewSdk31Plus";
-  blurTarget?: React.RefObject<View | null>;
-  experimentalBlurMethod?: "none" | "dimezisBlurView";
-};
+interface NeutralBlurViewProps {
+  children?: React.ReactNode;
+  style?: StyleProp<ViewStyle>;
+  intensity?: number;
+  tint?: string;
+  pointerEvents?: "box-none" | "none" | "box-only" | "auto";
+}
 
 export function NeutralBlurView({
   children,
   intensity = 75,
-  tint = "default",
+  style,
+  pointerEvents = "auto",
   ...props
 }: NeutralBlurViewProps) {
+  const opacity = Math.min(intensity / 100, 0.4);
   return (
-    <ExpoBlurCompat.BlurView
-      intensity={intensity}
-      tint={tint}
-      {...getAndroidBlurProps()}
+    <View
+      style={[
+        {
+          backgroundColor: `rgba(0, 0, 0, ${opacity})`,
+          backdropFilter: "blur(8px)",
+        },
+        style,
+      ]}
+      pointerEvents={pointerEvents}
       {...props}
     >
       {children}
-    </ExpoBlurCompat.BlurView>
+    </View>
   );
 }

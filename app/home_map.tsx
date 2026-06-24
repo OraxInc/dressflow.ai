@@ -88,9 +88,7 @@ export default function HomeMap() {
       if (!Scene) return null;
       return (
         <TabFocusProvider value={routes[index].key === route.key}>
-          <View style={{ flex: 1, backgroundColor: "#000" }}>
-            <Scene />
-          </View>
+          <Scene />
         </TabFocusProvider>
       );
     },
@@ -122,7 +120,6 @@ export default function HomeMap() {
         style={{ backgroundColor: "transparent" }}
         swipeEnabled
         renderTabBar={() => null}
-        lazy
       />
 
       <SafeAreaView edges={["bottom"]} style={styles.safeArea}>
@@ -213,10 +210,10 @@ export default function HomeMap() {
                 <Ionicons name="infinite-outline" size={22} color="#fff" />
                 <View>
                   <Text style={styles.subLabel}>Abonnement mensuel</Text>
-                  <Text style={styles.subMeta}>5 000 diamants / mois</Text>
+                  <Text style={styles.subMeta}>5 000 diamants</Text>
                 </View>
               </View>
-              <Text style={styles.subPrice}>$45 / mois</Text>
+              <Text style={styles.subPrice}>$45</Text>
             </TouchableOpacity>
 
             {/* Annuler */}
@@ -301,7 +298,7 @@ const styles = StyleSheet.create({
     marginBottom: 6,
   },
   cardTitle: {
-    fontSize: 22,
+    fontSize: 20,
     fontWeight: "800",
     color: C.cream,
     letterSpacing: 0.3,
@@ -348,8 +345,8 @@ const styles = StyleSheet.create({
     marginBottom: 18,
   },
   subLabel: { fontSize: 16, color: "#fff", fontWeight: "700" },
-  subMeta: { fontSize: 12, color: "rgba(255,255,255,0.75)", marginTop: 2 },
-  subPrice: { fontSize: 17, color: "#fff", fontWeight: "900" },
+  subMeta: { fontSize: 12, color: "rgba(255,255,255,0.75)", margin: 2 },
+  subPrice: { fontSize: 14, color: "#fff", fontWeight: "900" },
 
   /* Annuler */
   cancelBtn: { alignItems: "center", paddingVertical: 4 },

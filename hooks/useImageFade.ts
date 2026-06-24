@@ -1,33 +1,24 @@
-import { useEffect, useRef } from "react";
-import { Animated } from "react-native";
+import { useEffect } from "react";
+import { useSharedValue, withTiming } from "react-native-reanimated";
+import type { SharedValue } from "react-native-reanimated";
 
 /**
- * Gère l'opacité de l'image selon le cycle :
- *   - Pas d'image OU onglet inactif → transparent (0)
- *   - Image uploadée ET onglet actif  → fade in 0 → 1
- *   - Onglet quitte le focus          → retour à 0 (arrière-plan flou visible)
- *   - Image fermée                    → retour à 0
+ * Fade-in Reanimated quand uri est défini.
+ * Utilise SharedValue + withTiming pour compatibilité Fabric (new arch RN 0.85).
+ * L'ancien Animated.timing + useNativeDriver:false reposait sur setNativeProps
+ * qui est cassé dans Fabric — les updates d'opacité n'étaient pas flushed
+ * visuellement avant le prochain re-render React (d'où l'écran noir).
  */
-export function useImageFade(uri: string | null, focused: boolean, duration = 380) {
-  const opacity = useRef(new Animated.Value(0)).current;
+export function useImageFade(
+  uri: string | null,
+  _focused?: boolean,
+  duration = 380,
+): SharedValue<number> {
+  const opacity = useSharedValue(0);
 
   useEffect(() => {
-    if (uri && focused) {
-      opacity.setValue(0);
-      Animated.timing(opacity, {
-        toValue: 1,
-        duration,
-        useNativeDriver: true,
-      }).start();
-    } else {
-      // Pas d'image OU onglet perdu → transparent immédiat
-      Animated.timing(opacity, {
-        toValue: 0,
-        duration: 150,
-        useNativeDriver: true,
-      }).start();
-    }
-  }, [uri, focused]);
+    opacity.value = uri ? withTiming(1, { duration }) : 0;
+  }, [uri]);
 
   return opacity;
 }

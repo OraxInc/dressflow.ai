@@ -80,7 +80,7 @@ export default function FaceSwapScreen() {
           <Text style={styles.paywallTitle}>Fonctionnalité Premium</Text>
           <Text style={styles.paywallDesc}>
             Le Face Swap IA ultra-réaliste est réservé aux abonnés Premium.
-            Échange ton visage dans n'importe quelle photo.
+            Échange ton visage dans n&apos;importe quelle photo.
           </Text>
           <View style={styles.featuresCard}>
             {[
