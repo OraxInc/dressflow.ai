@@ -27,7 +27,7 @@ import Svg, { Path } from "react-native-svg";
 import { NeutralBlurView } from "../../components/NeutralBlurView";
 import { ZoomableView } from "../../components/ZoomableView";
 import { useImageFade } from "../../hooks/useImageFade";
-import { XAI_API_KEY } from "../../lib/apiKeys";
+import { XAI_API_KEY, YOUCAM_API_KEY, YOUCAM_API_BASE } from "../../lib/apiKeys";
 import { useTabFocused } from "../context/TabFocusContext";
 
 const AnimatedPath = Reanimated.createAnimatedComponent(Path);
@@ -153,28 +153,49 @@ export default function HairstyleScreen() {
   }));
 
   const analyzeHairstyle = async () => {
-    if (!prompt.trim()) return;
+    if (!prompt.trim() || !imageBase64) return;
     setLoading(true);
     try {
-      const refInfo = refUri ? " J'ai aussi fourni une image de référence." : "";
-      const maskNote =
-        strokes.length > 0
-          ? ` L'utilisateur a marqué ${strokes.length} zone(s) capillaire(s) sur la photo.`
-          : "";
-      const promptText = `Je veux cette coiffure : "${prompt}".${refInfo}${maskNote} Donne-moi 5 recommandations précises avec : technique de coiffage, produits recommandés, durée de tenue et entretien quotidien.`;
+      // YouCam API call for hair style generation
+      const maskNote = strokes.length > 0 ? ` User marked ${strokes.length} area(s) on hair.` : "";
+      const youcamPrompt = `Apply this hairstyle: ${prompt}.${maskNote}`;
 
-      const userContent: any = imageBase64
-        ? [
-            {
-              type: "image_url",
-              image_url: {
-                url: `data:image/jpeg;base64,${imageBase64}`,
-                detail: "low",
-              },
-            },
-            { type: "text", text: promptText },
-          ]
-        : promptText;
+      const youcamPayload = {
+        image: imageBase64,
+        prompt: youcamPrompt,
+        style: prompt,
+        quality: "high",
+      };
+
+      const youcamResp = await fetch(`${YOUCAM_API_BASE}/hair-style-generator`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${YOUCAM_API_KEY}`,
+        },
+        body: JSON.stringify(youcamPayload),
+      });
+
+      let youcamUrl: string | null = null;
+      if (youcamResp.ok) {
+        const youcamData = await youcamResp.json();
+        youcamUrl = youcamData.data?.url ?? youcamData.image_url ?? null;
+      }
+
+      // Fallback: Grok AI analysis
+      const refInfo = refUri ? " I also provided a reference image." : "";
+      const promptText = `I want this hairstyle: "${prompt}".${refInfo}${maskNote} Give me 5 precise recommendations with: styling technique, recommended products, durability and daily maintenance.`;
+
+      const userContent: any = [
+        {
+          type: "image_url",
+          image_url: {
+            url: `data:image/jpeg;base64,${imageBase64}`,
+            detail: "low",
+          },
+        },
+        { type: "text", text: promptText },
+      ];
 
       const response = await fetch("https://api.x.ai/v1/chat/completions", {
         method: "POST",
@@ -188,7 +209,7 @@ export default function HairstyleScreen() {
             {
               role: "system",
               content:
-                "Tu es un expert en coiffure et stylisme capillaire de luxe. Tes recommandations sont précises, photo-réalistes. Tu mentionnes les techniques, les produits professionnels et l'entretien. Réponds en français avec 5 recommandations numérotées.",
+                "You are a luxury hair and styling expert. Your recommendations are precise, photorealistic. You mention techniques, professional products and maintenance. Reply in 5 numbered recommendations.",
             },
             { role: "user", content: userContent },
           ],
@@ -198,9 +219,20 @@ export default function HairstyleScreen() {
       const data = await response.json();
       if (data.error) throw new Error(data.error.message);
       const text: string = data.choices?.[0]?.message?.content ?? "";
-      Alert.alert("Recommandations coiffure", text);
+
+      const resultText = youcamUrl
+        ? `✨ AI Generated:\n${youcamUrl}\n\n📋 Recommendations:\n${text}`
+        : text;
+
+      Alert.alert("Hairstyle Recommendations", resultText);
+      if (youcamUrl) {
+        setImageUri(youcamUrl);
+        setStrokes([]);
+        setTool(null);
+        toolRef.current = null;
+      }
     } catch (err: any) {
-      Alert.alert("Erreur IA", err.message ?? "Connexion impossible.");
+      Alert.alert("API Error", err.message ?? "Connection failed.");
     } finally {
       setLoading(false);
     }
@@ -437,7 +469,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     paddingHorizontal: 24,
-    paddingBottom: 88,
   },
   emptyHint: {
     fontSize: 15,

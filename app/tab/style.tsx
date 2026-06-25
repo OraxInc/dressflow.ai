@@ -27,7 +27,7 @@ import Svg, { Path } from "react-native-svg";
 import { NeutralBlurView } from "../../components/NeutralBlurView";
 import { ZoomableView } from "../../components/ZoomableView";
 import { useImageFade } from "../../hooks/useImageFade";
-import { XAI_API_KEY } from "../../lib/apiKeys";
+import { XAI_API_KEY, YOUCAM_API_KEY, YOUCAM_API_BASE } from "../../lib/apiKeys";
 import { useTabFocused } from "../context/TabFocusContext";
 
 const AnimatedPath = Reanimated.createAnimatedComponent(Path);
@@ -149,8 +149,39 @@ export default function AccueilScreen() {
     try {
       const maskNote =
         strokes.length > 0
-          ? ` L'utilisateur a marqué ${strokes.length} zone(s) sur la photo pour indiquer les zones à modifier en priorité.`
+          ? ` User marked ${strokes.length} zone(s) on the photo to indicate priority modification areas.`
           : "";
+
+      // Try YouCam Style API first
+      const youcamPayload = {
+        image: imageBase64,
+        ...(attachUri && { reference: attachUri }),
+        style_description: prompt,
+        mask: strokes.length > 0 ? "user_marked" : "auto",
+        quality: "high",
+        output_format: "url",
+      };
+
+      let generatedImageUrl: string | null = null;
+      try {
+        const youcamResp = await fetch(`${YOUCAM_API_BASE}/clothing-style-transfer`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${YOUCAM_API_KEY}`,
+          },
+          body: JSON.stringify(youcamPayload),
+        });
+
+        if (youcamResp.ok) {
+          const youcamData = await youcamResp.json();
+          generatedImageUrl = youcamData.data?.url ?? youcamData.image_url ?? null;
+        }
+      } catch (e) {
+        // Continue to Grok if YouCam fails
+      }
+
+      // Grok analysis for recommendations
       const messages: any[] = [
         {
           role: "system",
@@ -185,7 +216,12 @@ export default function AccueilScreen() {
       const data = await response.json();
       if (data.error) throw new Error(data.error.message);
       const text: string = data.choices?.[0]?.message?.content ?? "";
-      Alert.alert("Suggestions de style", text);
+
+      const resultText = generatedImageUrl
+        ? `✨ Image générée:\n${generatedImageUrl}\n\n📋 Recommandations:\n${text}`
+        : text;
+
+      Alert.alert("Suggestions de style", resultText);
     } catch (err: any) {
       Alert.alert("Erreur IA", err.message ?? "Impossible de contacter l'IA.");
     } finally {

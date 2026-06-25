@@ -31,4 +31,6 @@ Ayimolou-backend/
 
 lib/apiKeys.ts/
 
-lib/
+lib/.env.local
+.env.local
+.env

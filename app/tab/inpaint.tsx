@@ -28,7 +28,7 @@ import Svg, { Path } from "react-native-svg";
 import { NeutralBlurView } from "../../components/NeutralBlurView";
 import { ZoomableView } from "../../components/ZoomableView";
 import { useImageFade } from "../../hooks/useImageFade";
-import { XAI_API_KEY } from "../../lib/apiKeys";
+import { XAI_API_KEY, YOUCAM_API_KEY, YOUCAM_API_BASE } from "../../lib/apiKeys";
 import { useTabFocused } from "../context/TabFocusContext";
 
 // Composant Path animé — mis à jour sur le UI thread, zéro bridge JS
@@ -173,91 +173,120 @@ export default function InpaintScreen() {
     strokeOpacity: liveVis.value,
   }));
 
-  /* ── runInpaint : grok-2-vision-1212 → description enrichie → aurora → image ── */
+  /* ── runInpaint : YouCam API with Grok fallback ── */
   const runInpaint = async () => {
     if (!prompt.trim() || !imageBase64) return;
     setLoading(true);
     try {
-      // Étape 1 — vision : décrire l'image en détail + intégrer la modification
       const maskNote =
         strokes.length > 0
-          ? ` The user painted ${strokes.length} zone(s) with a brush to indicate exactly where to apply the change.`
+          ? ` The user marked ${strokes.length} zone(s) with a brush to indicate exactly where to apply the change.`
           : "";
 
-      const vResp = await fetch("https://api.x.ai/v1/chat/completions", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${XAI_API_KEY}`,
-        },
-        body: JSON.stringify({
-          model: "grok-3",
-          messages: [
-            {
-              role: "user",
-              content: [
-                {
-                  type: "image_url",
-                  image_url: {
-                    url: `data:image/jpeg;base64,${imageBase64}`,
-                    detail: "low",
+      // Try YouCam Inpaint API first
+      const youcamPayload = {
+        image: imageBase64,
+        ...(attachB64 && { reference: attachB64 }),
+        prompt: `${prompt}${maskNote}`,
+        mask: strokes.length > 0 ? "user_marked" : "auto",
+        quality: "high",
+      };
+
+      let resultUrl: string | undefined;
+      try {
+        const youcamResp = await fetch(`${YOUCAM_API_BASE}/inpaint`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${YOUCAM_API_KEY}`,
+          },
+          body: JSON.stringify(youcamPayload),
+        });
+
+        if (youcamResp.ok) {
+          const youcamData = await youcamResp.json();
+          resultUrl = youcamData.data?.url ?? youcamData.image_url;
+        }
+      } catch (e) {
+        // Fallback to Grok if YouCam fails
+      }
+
+      // Fallback: Grok vision + Aurora generation
+      if (!resultUrl) {
+        const vResp = await fetch("https://api.x.ai/v1/chat/completions", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${XAI_API_KEY}`,
+          },
+          body: JSON.stringify({
+            model: "grok-3",
+            messages: [
+              {
+                role: "user",
+                content: [
+                  {
+                    type: "image_url",
+                    image_url: {
+                      url: `data:image/jpeg;base64,${imageBase64}`,
+                      detail: "low",
+                    },
                   },
-                },
-                ...(attachB64
-                  ? [
-                      {
-                        type: "image_url",
-                        image_url: {
-                          url: `data:image/jpeg;base64,${attachB64}`,
-                          detail: "low",
+                  ...(attachB64
+                    ? [
+                        {
+                          type: "image_url",
+                          image_url: {
+                            url: `data:image/jpeg;base64,${attachB64}`,
+                            detail: "low",
+                          },
                         },
-                      },
-                    ]
-                  : []),
-                {
-                  type: "text",
-                  text: `Describe this photo with full photorealistic detail: lighting, colors, textures, composition, background, subjects, clothing.${maskNote} Then write a single image-generation prompt that recreates the exact scene with only this change applied: "${prompt}". Keep every other detail identical. Output only the prompt, no intro or explanation.`,
-                },
-              ],
-            },
-          ],
-          max_tokens: 500,
-        }),
-      });
-      const vData = await vResp.json();
-      if (!vResp.ok)
-        throw new Error(
-          vData.error?.message ??
-            `Vision ${vResp.status}: ${JSON.stringify(vData)}`,
-        );
-      const genPrompt: string =
-        vData.choices?.[0]?.message?.content?.trim() ?? prompt;
+                      ]
+                    : []),
+                  {
+                    type: "text",
+                    text: `Describe this photo with full photorealistic detail: lighting, colors, textures, composition, background, subjects, clothing.${maskNote} Then write a single image-generation prompt that recreates the exact scene with only this change applied: "${prompt}". Keep every other detail identical. Output only the prompt, no intro or explanation.`,
+                  },
+                ],
+              },
+            ],
+            max_tokens: 500,
+          }),
+        });
+        const vData = await vResp.json();
+        if (!vResp.ok)
+          throw new Error(
+            vData.error?.message ??
+              `Vision ${vResp.status}: ${JSON.stringify(vData)}`,
+          );
+        const genPrompt: string =
+          vData.choices?.[0]?.message?.content?.trim() ?? prompt;
 
-      // Étape 2 — génération image avec Aurora (modèle xAI)
-      const iResp = await fetch("https://api.x.ai/v1/images/generations", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${XAI_API_KEY}`,
-        },
-        body: JSON.stringify({
-          model: "aurora",
-          prompt: genPrompt,
-          n: 1,
-          response_format: "url",
-        }),
-      });
-      const iData = await iResp.json();
-      if (!iResp.ok)
-        throw new Error(
-          iData.error?.message ?? `Generation error ${iResp.status}`,
-        );
+        const iResp = await fetch("https://api.x.ai/v1/images/generations", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${XAI_API_KEY}`,
+          },
+          body: JSON.stringify({
+            model: "aurora",
+            prompt: genPrompt,
+            n: 1,
+            response_format: "url",
+          }),
+        });
+        const iData = await iResp.json();
+        if (!iResp.ok)
+          throw new Error(
+            iData.error?.message ?? `Generation error ${iResp.status}`,
+          );
 
-      const resultUrl: string | undefined =
-        iData.data?.[0]?.url ??
-        (iData.data?.[0]?.b64_json
-          ? `data:image/png;base64,${iData.data[0].b64_json}`
-          : undefined);
+        resultUrl =
+          iData.data?.[0]?.url ??
+          (iData.data?.[0]?.b64_json
+            ? `data:image/png;base64,${iData.data[0].b64_json}`
+            : undefined);
+      }
 
       if (resultUrl) {
         setDisplayUri(resultUrl);
@@ -265,10 +294,10 @@ export default function InpaintScreen() {
         setTool(null);
         toolRef.current = null;
       } else {
-        Alert.alert("Génération échouée", JSON.stringify(iData));
+        Alert.alert("Generation failed", "No image generated");
       }
     } catch (err: any) {
-      Alert.alert("Erreur API", err.message ?? "Connexion impossible.");
+      Alert.alert("API Error", err.message ?? "Connection failed.");
     } finally {
       setLoading(false);
     }
@@ -643,7 +672,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     paddingHorizontal: 24,
-    paddingBottom: 88,
   },
   emptyHint: {
     fontSize: 15,

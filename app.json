@@ -14,7 +14,8 @@
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#f4913f"
-      }
+      },
+      "package": "com.joeldate39.dressai"
     },
     "web": {
       "bundler": "metro",
@@ -40,6 +41,12 @@
     ],
     "experiments": {
       "typedRoutes": true
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "76e0bc00-f599-451d-9942-00220e4f19a8"
+      }
     }
   }
 }
