@@ -221,7 +221,7 @@ export default function HairstyleScreen() {
       const text: string = data.choices?.[0]?.message?.content ?? "";
 
       const resultText = youcamUrl
-        ? `✨ AI Generated:\n${youcamUrl}\n\n📋 Recommendations:\n${text}`
+        ? `AI Generated:\n${youcamUrl}\n\nRecommendations:\n${text}`
         : text;
 
       Alert.alert("Hairstyle Recommendations", resultText);

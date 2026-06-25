@@ -218,7 +218,7 @@ export default function AccueilScreen() {
       const text: string = data.choices?.[0]?.message?.content ?? "";
 
       const resultText = generatedImageUrl
-        ? `✨ Image générée:\n${generatedImageUrl}\n\n📋 Recommandations:\n${text}`
+        ? `Image generee:\n${generatedImageUrl}\n\nRecommandations:\n${text}`
         : text;
 
       Alert.alert("Suggestions de style", resultText);
