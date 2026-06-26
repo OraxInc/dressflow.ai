@@ -1,6 +1,5 @@
 # Secrets — ne jamais pusher
 .env
-lib/apiKeys.ts
 
 # Node / React
 node_modules/
@@ -28,8 +27,6 @@ expo-env.d.ts
 .env/
 
 Ayimolou-backend/
-
-lib/apiKeys.ts/
 
 lib/.env.local
 .env.local
